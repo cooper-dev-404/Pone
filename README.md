@@ -14,6 +14,8 @@ bash P一下.command --remove
 
 首次启动会下载并校验 PhotoCraft 官方运行时，也可使用已下载的同版 DMG。用户配置和可编辑练习副本保存在 `~/Library/Application Support/Layerlight Workbench`。
 
+macOS 编辑器界面改版可独立构建和试用，使用单独的工作区配置和练习副本。 [界面预览入口](layerlight-workbench/README.md#编辑器界面预览)
+
 ## 云端与本地协作
 
 把工作区连接到同一个私有 Git 仓库。每次从 `main` 为清单中的一项功能创建分支。云端用 `layerlight-workbench/verify.py` 跑引擎回归，Mac 用同一提交验收画布交互。将测试结果与样稿一起提交，通过后合并，再进入下一项。

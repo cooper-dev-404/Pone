@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>CFBundleIdentifier</key>
+    <string>local.pyixia.editor.preview</string>
+    <key>CFBundleDisplayName</key>
+    <string>P一下 编辑器预览</string>
+    <key>CFBundleName</key>
+    <string>P一下</string>
+    <key>CFBundleExecutable</key>
+    <string>photocraft</string>
+    <key>CFBundleIconFile</key>
+    <string>Pyixia.icns</string>
+    <key>CFBundlePackageType</key>
+    <string>APPL</string>
+    <key>CFBundleVersion</key>
+    <string>0.23.1</string>
+    <key>CFBundleShortVersionString</key>
+    <string>0.23.1</string>
+    <key>CFBundleDevelopmentRegion</key>
+    <string>zh-Hans</string>
+    <key>CFBundleLocalizations</key>
+    <array>
+        <string>zh-Hans</string>
+        <string>en</string>
+    </array>
+    <key>LSMinimumSystemVersion</key>
+    <string>11.0</string>
+    <key>NSHighResolutionCapable</key>
+    <true/>
+</dict>
+</plist>

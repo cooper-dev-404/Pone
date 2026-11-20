@@ -1,0 +1,940 @@
+--- a/crates/ui-egui/src/canvas/tabs.rs
++++ b/crates/ui-egui/src/canvas/tabs.rs
+@@ -211,9 +211,7 @@
+         .filter_map(|&doc| app.session.documents().get(doc))
+         .map(|st| {
+             let name = studio_tab_name(app, st);
+-            ui.painter().layout_no_wrap(name, font.clone(), t.text).size().x
+-                + ui.painter().layout_no_wrap(format!("{}/{}", mode_label(&st.doc), st.doc.depth.bits()), meta_font.clone(), t.text_faint).size().x
+-                + STUDIO_TAB_PAD
++            ui.painter().layout_no_wrap(name, font.clone(), t.text).size().x + STUDIO_TAB_PAD
+         })
+         .chain(opening.iter().map(|(_, name, frac)| {
+             ui.painter().layout_no_wrap(name.clone(), font.clone(), t.text).size().x
+@@ -226,7 +224,7 @@
+         .focus
+         .and_then(|job| opening.iter().position(|(open, _, _)| *open == job))
+         .map_or_else(|| app.session.active_index().and_then(|doc| documents.iter().position(|&d| d == doc)).unwrap_or(0), |p| tab_count + p);
+-    let frame = egui::Frame::NONE.fill(t.canvas).inner_margin(egui::Margin { left: 8, right: 8, top: 6, bottom: 4 }).show(ui, |ui| {
++    let frame = egui::Frame::NONE.fill(t.chrome).inner_margin(egui::Margin { left: 8, right: 8, top: 4, bottom: 4 }).show(ui, |ui| {
+         let (row, _) = ui.allocate_exact_size(egui::vec2(ui.available_width(), tab_h), Sense::hover());
+         let f = fit_doc_tabs(&natural, selected, row.width());
+         let mut x = row.left();
+@@ -242,17 +240,18 @@
+             let Some(st) = app.session.documents().get(doc) else { continue };
+             let sel = Some(doc) == active && !focused_open;
+             let name = studio_tab_name(app, st);
+-            let meta = format!("{}/{}", mode_label(&st.doc), st.doc.depth.bits());
+-            let natural_w = natural.get(i).copied().unwrap_or(0.0);
+-            let meta_g = ui.painter().layout_no_wrap(meta, meta_font.clone(), t.text_faint);
+-            let name_max = (r.width() - STUDIO_TAB_PAD + STUDIO_TAB_GAP - meta_g.size().x).max(1.0);
++            let name_max = (r.width() - STUDIO_TAB_PAD + STUDIO_TAB_GAP).max(1.0);
+             let name_g = crate::tab_strip::elided(ui, &name, font.clone(), t.text, name_max);
+-            // The title was cut: the tooltip has the rest of it.
+-            let cut = name_g.size().x + 0.5 < natural_w - STUDIO_TAB_PAD + STUDIO_TAB_GAP - meta_g.size().x;
+             let resp = ui.interact(r, ui.scope_id().with(("dtab", doc)), Sense::click_and_drag());
+             let saving = crate::jobs_ui::save_progress(app, st.doc.id);
+             resp.widget_info(|| {
+-                let label = saving.as_ref().map_or_else(|| st.doc.name.clone(), |s| format!("{} - {s}", st.doc.name));
++                let label = if let Some(saving) = &saving {
++                    format!("{} · {saving}", st.doc.name)
++                } else if st.is_dirty() {
++                    format!("{} · {}", st.doc.name, tl!("Unsaved changes"))
++                } else {
++                    st.doc.name.clone()
++                };
+                 egui::WidgetInfo::selected(egui::Role::Button, true, sel, label)
+             });
+             doc_tabs.push((doc, r));
+@@ -266,17 +265,25 @@
+                 drag_over = Some(doc);
+                 ui.painter().rect_stroke(r, t.radius_sm, Stroke::new(1.5, t.accent), egui::StrokeKind::Inside);
+             }
++            if sel || resp.has_focus() {
++                ui.painter().line_segment([r.left_bottom() + egui::vec2(8.0, -1.0), r.right_bottom() - egui::vec2(8.0, 1.0)], Stroke::new(2.0, t.accent));
++            }
+             let color = if sel { t.text } else { t.text_dim };
+             let ny = r.center().y - name_g.size().y / 2.0;
+             ui.painter().galley_with_override_text_color(egui::pos2(r.left() + 10.0, ny), name_g.clone(), color);
+-            ui.painter().galley(egui::pos2(r.left() + 16.0 + name_g.size().x, r.center().y - meta_g.size().y / 2.0), meta_g, t.text_faint);
+-            let xr = Rect::from_center_size(egui::pos2(r.right() - 12.0, r.center().y), egui::vec2(16.0, 16.0));
++            let xr = Rect::from_center_size(egui::pos2(r.right() - 13.0, r.center().y), egui::vec2(22.0, 22.0));
+             let xresp = ui.interact(xr, ui.scope_id().with(("dtabx", doc)), Sense::click());
+-            if xresp.hovered() {
+-                ui.painter().rect_filled(xr, 4.0, t.hover);
+-            }
+-            crate::icons::paint(ui, xr, "x", 11.0, if xresp.hovered() { t.text } else { t.text_faint });
+-            let resp = if cut { resp.on_hover_text(name) } else { resp };
++            xresp.widget_info(|| egui::WidgetInfo::labeled(egui::Role::Button, true, format!("{} · {}", tl!("Close"), st.doc.name)));
++            if xresp.hovered() || xresp.has_focus() {
++                ui.painter().rect_filled(xr, t.radius_sm, t.hover);
++                crate::icons::paint(ui, xr, "x", 12.0, t.text);
++            } else if st.is_dirty() {
++                ui.painter().circle_filled(xr.center(), 2.7, t.accent);
++            } else if sel || resp.hovered() {
++                crate::icons::paint(ui, xr, "x", 12.0, t.text_dim);
++            }
++            let meta = format!("{}/{}", mode_label(&st.doc), st.doc.depth.bits());
++            let resp = resp.on_hover_text(format!("{name} · {meta}"));
+             if tab_close_clicked(&resp, &xresp) {
+                 close = Some(doc);
+             } else if resp.clicked() {
+@@ -567,10 +574,10 @@
+     format!("{} @ {}% ({layer}{model}/{}){}{saving}", st.doc.name, fmt_zoom(zoom), st.doc.depth.bits(), if st.is_dirty() { "*" } else { "" })
+ }
+
+-/// The Studio strip's tab name: "name *" when unsaved, "name * - Saving 45%" while it saves (#3389).
++/// The Studio tab shows saving progress next to the name. Unsaved state has its own indicator.
+ fn studio_tab_name(app: &PhotocraftApp, st: &photocraft_engine::DocState) -> String {
+     let saving = crate::jobs_ui::save_progress(app, st.doc.id).map(|s| format!(" - {s}")).unwrap_or_default();
+-    format!("{}{}{saving}", st.doc.name, if st.is_dirty() { " *" } else { "" })
++    format!("{}{saving}", st.doc.name)
+ }
+
+ /// Photoshop document tabs: "name @ 33.3% (RGB/8)" on a dark strip; active tab matches panels.
+--- a/crates/ui-egui/src/canvas/start_screen.rs
++++ b/crates/ui-egui/src/canvas/start_screen.rs
+@@ -55,9 +55,9 @@
+         let (new_rect, new_resp) = ui.allocate_exact_size(egui::vec2(btn_w, 32.0), Sense::click());
+         new_resp.widget_info(|| egui::WidgetInfo::labeled(egui::Role::Button, true, new_label));
+         let new_resp = new_resp.on_hover_cursor(egui::CursorIcon::PointingHand);
+-        let new_bg = if new_resp.hovered() { egui::Color32::from_rgb(41, 131, 245) } else { egui::Color32::from_rgb(26, 115, 232) };
++        let new_bg = if new_resp.hovered() { t.primary_bg.lerp_to_gamma(t.primary_text, 0.10) } else { t.primary_bg };
+         ui.painter().rect_filled(new_rect, 4.0, new_bg);
+-        ui.painter().text(new_rect.center(), egui::Align2::CENTER_CENTER, new_label, crate::theme::semibold(13.0), egui::Color32::WHITE);
++        ui.painter().text(new_rect.center(), egui::Align2::CENTER_CENTER, new_label, crate::theme::semibold(13.0), t.primary_text);
+         if new_resp.clicked() {
+             let fields = app.new_document_fields();
+             app.ui.open_dialog(crate::state::DialogKind::NewDocument, fields);
+@@ -91,9 +91,9 @@
+     let (new_rect, new_resp) = ui.allocate_exact_size(egui::vec2(rail_w.min(130.0), 32.0), Sense::click());
+     new_resp.widget_info(|| egui::WidgetInfo::labeled(egui::Role::Button, true, new_label));
+     let new_resp = new_resp.on_hover_cursor(egui::CursorIcon::PointingHand);
+-    let new_bg = if new_resp.hovered() { egui::Color32::from_rgb(41, 131, 245) } else { egui::Color32::from_rgb(26, 115, 232) };
++    let new_bg = if new_resp.hovered() { t.primary_bg.lerp_to_gamma(t.primary_text, 0.10) } else { t.primary_bg };
+     ui.painter().rect_filled(new_rect, 4.0, new_bg);
+-    ui.painter().text(new_rect.center(), egui::Align2::CENTER_CENTER, new_label, crate::theme::semibold(13.0), egui::Color32::WHITE);
++    ui.painter().text(new_rect.center(), egui::Align2::CENTER_CENTER, new_label, crate::theme::semibold(13.0), t.primary_text);
+     if new_resp.clicked() {
+         let fields = app.new_document_fields();
+         app.ui.open_dialog(crate::state::DialogKind::NewDocument, fields);
+@@ -199,18 +199,15 @@
+     let t = crate::theme::Tokens::get(ui.ctx());
+     ui.add_space(8.0);
+
+-    // Top Row: [01] PhotoCraft
+     ui.horizontal(|ui| {
+-        let badge_size = egui::vec2(24.0, 19.0);
+-        let (badge_rect, _) = ui.allocate_exact_size(badge_size, Sense::hover());
+-        ui.painter().rect_filled(badge_rect, 3.0, egui::Color32::from_rgb(26, 115, 232));
+-        ui.painter().text(badge_rect.center(), egui::Align2::CENTER_CENTER, "01", crate::theme::semibold(10.5), egui::Color32::WHITE);
+-
+-        ui.add_space(10.0);
+-
+-        let title_galley = ui.painter().layout_no_wrap(tl!("PhotoCraft").into(), crate::theme::semibold(20.0), t.text);
+-        let (title_r, _) = ui.allocate_exact_size(title_galley.size(), Sense::hover());
+-        ui.painter().galley(title_r.min, title_galley, t.text);
++        ui.label(egui::RichText::new("P一下").font(crate::theme::semibold(23.0)).color(t.text));
++        if !app.session.documents().is_empty() {
++            ui.with_layout(crate::direction::trailing(), |ui| {
++                if crate::widgets::secondary_button(ui, tl!("Documents"), 74.0).clicked() {
++                    app.ui.chrome.home = None;
++                }
++            });
++        }
+     });
+
+     ui.add_space(18.0);
+@@ -247,11 +244,18 @@
+         ui.add_space(pad_x);
+
+         let (drop_r, drop_resp) = ui.allocate_exact_size(egui::vec2(drop_w, drop_h), Sense::click());
++        drop_resp.widget_info(|| egui::WidgetInfo::labeled(egui::Role::Button, true, tl!("Open…")));
+         let drop_resp = drop_resp.on_hover_cursor(egui::CursorIcon::PointingHand).on_hover_text(tl!("Open…"));
+         let is_hov = drop_resp.hovered();
+
+-        let border_color = if is_hov { t.text_dim } else { t.separator };
+-        let bg_color = if is_hov { t.hover } else { egui::Color32::TRANSPARENT };
++        let border_color = if drop_resp.has_focus() {
++            t.accent_border
++        } else if is_hov {
++            t.text_dim
++        } else {
++            t.card_border
++        };
++        let bg_color = if is_hov { t.hover } else { t.card };
+         ui.painter().rect_filled(drop_r, 8.0, bg_color);
+         ui.painter().rect_stroke(drop_r, 8.0, egui::Stroke::new(1.0, border_color), egui::StrokeKind::Inside);
+
+--- a/crates/ui-egui/src/icons.rs
++++ b/crates/ui-egui/src/icons.rs
+@@ -217,6 +217,10 @@
+ /// [`button_with_icon_size`] whose tooltip shows only when `show_tip`; the tooltip text still
+ /// names the button (for screen readers and tests) when it is hidden.
+ pub fn button_with_icon_size_tip(ui: &mut egui::Ui, name: &str, box_size: f32, icon_size: f32, selected: bool, tooltip: &str, show_tip: bool) -> Response {
++    button_in_box(ui, name, Vec2::splat(box_size), icon_size, selected, tooltip, show_tip)
++}
++
++pub(crate) fn button_in_box(ui: &mut egui::Ui, name: &str, size: Vec2, icon_size: f32, selected: bool, tooltip: &str, show_tip: bool) -> Response {
+     let t = Tokens::get(ui.ctx());
+     let style = IconButtonStyle {
+         normal: ButtonVisuals { fill: Color32::TRANSPARENT, stroke: egui::Stroke::NONE, icon: t.icon },
+@@ -227,7 +231,7 @@
+         focus_stroke: egui::Stroke::new(1.0, t.accent),
+     };
+     let label = if tooltip.is_empty() { name } else { tl!(tooltip) };
+-    let resp = IconButton::new(label, Vec2::splat(box_size), &style).selected(selected).show(ui, |ui, rect, tint| {
++    let resp = IconButton::new(label, size, &style).selected(selected).show(ui, |ui, rect, tint| {
+         paint(ui, rect, name, icon_size, tint);
+     });
+     if tooltip.is_empty() || !show_tip { resp } else { resp.on_hover_text(label) }
+--- a/crates/ui-egui/src/panels/dock.rs
++++ b/crates/ui-egui/src/panels/dock.rs
+@@ -14,7 +14,7 @@
+     if app.ui.panels.rail && !t.pro {
+         rail(app, ui, &t);
+     }
+-    egui::CentralPanel::default().frame(egui::Frame::NONE).show(ui, |ui| crate::panel_docking::show(app, ui));
++    egui::CentralPanel::default().frame(egui::Frame::NONE.fill(t.canvas)).show(ui, |ui| crate::panel_docking::show(app, ui));
+     crate::dock::persist(app, ui.ctx());
+     crate::color_panel_ui::persist(app);
+ }
+--- a/crates/ui-egui/src/panels/layer_row.rs
++++ b/crates/ui-egui/src/panels/layer_row.rs
+@@ -121,17 +121,17 @@
+     let t = Tokens::get(ctx);
+     let target = crate::frame_tool::target(app, l);
+     if selected && target != crate::frame_tool::Target::Content {
+-        crate::mask_thumbs_ui::paint_brackets(painter, thumb, t.text);
++        crate::mask_thumbs_ui::paint_brackets(painter, thumb, if t.pro { t.text } else { t.accent });
+     }
+     let content_thumb = Rect::from_min_size(pos2(x, rect.center().y - ts / 2.0), vec2(ts, ts));
+     let child = l.children().and_then(|c| c.first());
+     if let Some(child) = child {
+-        draw_layer_thumb(app, ctx, ui, doc, child, content_thumb, false);
++        draw_layer_thumb(app, ctx, ui, doc, child, content_thumb);
+     } else {
+         icons::paint(ui, content_thumb, "frame-placeholder", ts.min(24.0), t.icon);
+     }
+     if selected && target != crate::frame_tool::Target::Frame {
+-        crate::mask_thumbs_ui::paint_brackets(painter, content_thumb, t.text);
++        crate::mask_thumbs_ui::paint_brackets(painter, content_thumb, if t.pro { t.text } else { t.accent });
+     }
+     let pos = resp.interact_pointer_pos();
+     let on_content = pos.is_some_and(|p| content_thumb.contains(p));
+@@ -225,7 +225,10 @@
+     if resp.hovered() {
+         app.hover_layer = Some(l.id);
+     }
+-    paint_row_background(&painter, &t, l, rect, selected, is_hovered);
++    paint_row_background(&painter, &t, l, rect, row, is_hovered);
++    if resp.has_focus() && !t.pro {
++        painter.rect_stroke(rect.shrink(1.0), t.radius_sm, Stroke::new(1.0, t.accent), StrokeKind::Inside);
++    }
+     let mut x = rect.left() + 6.0;
+     let eye_resp = eye_column(app, ui, l, row, rect, actions);
+     // Everything but the thumbnails, the indentation and the name, so a narrow panel squeezes
+@@ -249,7 +252,7 @@
+     }
+     let thumb = Rect::from_min_size(pos2(x, rect.center().y - ts / 2.0), vec2(ts, ts));
+     if ts > 0.0 {
+-        draw_layer_thumb(app, ctx, ui, doc, l, thumb, row.primary);
++        draw_layer_thumb(app, ctx, ui, doc, l, thumb);
+         x += ts + 6.0;
+     }
+     let mut frame_clicked = false;
+@@ -305,6 +308,16 @@
+         let m = ui.input(|i| i.modifiers);
+         if load_at(m, p).is_some() {
+             thumb_load_cursor(ctx, p, m);
++        } else if !t.pro {
++            if let Some(kind) = masks.hit(p) {
++                let tip = match kind {
++                    crate::mask_thumbs_ui::MaskKind::Pixel => tl!("Layer Mask"),
++                    crate::mask_thumbs_ui::MaskKind::Vector => tl!("Vector Mask"),
++                };
++                resp.clone().on_hover_text_at_pointer(tip);
++            } else if name_rect.is_some_and(|name| name.contains(p)) {
++                resp.clone().on_hover_text_at_pointer(l.name.as_str());
++            }
+         }
+     }
+     // ⇧-click a mask thumbnail: disable / enable that mask; ⌥-click a layer mask: view it.
+@@ -356,7 +369,8 @@
+ }
+
+ /// The row's fill (selection / hover), the label colour behind the eye column and the pro dividers.
+-fn paint_row_background(painter: &egui::Painter, t: &Tokens, l: &Layer, rect: Rect, selected: bool, is_hovered: bool) {
++fn paint_row_background(painter: &egui::Painter, t: &Tokens, l: &Layer, rect: Rect, row: RowSel, is_hovered: bool) {
++    let selected = row.selected;
+     if t.pro {
+         if selected {
+             painter.rect_filled(rect, 0.0, t.row_selected);
+@@ -365,11 +379,10 @@
+             painter.rect_filled(rect, 0.0, t.accent.gamma_multiply(0.12));
+         }
+     } else if selected {
+-        painter.rect_filled(rect, t.radius, t.hover);
+-        painter.rect_stroke(rect, t.radius, Stroke::new(1.0, t.field_border), StrokeKind::Inside);
++        let fill = if t.row_selected == Color32::TRANSPARENT { t.hover } else { t.row_selected };
++        painter.rect_filled(rect.shrink(1.0), t.radius_sm, fill);
+     } else if is_hovered {
+-        painter.rect_filled(rect, t.radius, t.hover.gamma_multiply(0.5));
+-        painter.rect_filled(rect, t.radius, t.accent.gamma_multiply(0.12));
++        painter.rect_filled(rect.shrink(1.0), t.radius_sm, t.hover);
+     }
+     if l.artboard().is_some() && !selected && !is_hovered {
+         // A faint band behind a board's row, so where each board starts stands out in a long
+@@ -378,7 +391,15 @@
+     }
+     let eye_cell = eye_cell(rect);
+     if let Some((_, background)) = t.layer_label_colors(l.label) {
+-        painter.rect_filled(eye_cell, 0.0, background);
++        if t.pro {
++            painter.rect_filled(eye_cell, 0.0, background);
++        } else {
++            painter.rect_filled(eye_cell.shrink(4.0), t.radius_sm, background);
++        }
++    }
++    if row.primary && !t.pro {
++        let mark = Rect::from_center_size(pos2(rect.left() + 2.0, rect.center().y), vec2(2.0, rect.height() - 12.0));
++        painter.rect_filled(mark, 1.0, t.accent);
+     }
+     if t.pro {
+         // Paint dividers over the label so the eye column stays distinct.
+@@ -396,11 +417,22 @@
+     // The whole eye column takes drags too (so a drag starting on it never reorders the row): dragging down
+     // the eyes gives every row swept over the visibility the first eye toggled to (#8467).
+     let eye_resp = ui.interact(eye_cell, ui.scope_id().with(("eye", l.id.0)), Sense::click_and_drag());
+-    // A hidden layer's eye box is left empty (still clickable; the whole column takes the click, #8467).
++    // Keep the visibility hit area large while the glyph sits inside a compact hover tile.
++    let eye_tile = Rect::from_center_size(eye_cell.center(), vec2(22.0, 22.0));
++    if !t.pro && (eye_resp.hovered() || eye_resp.has_focus()) {
++        ui.painter().rect_filled(eye_tile, t.radius_sm, t.hover);
++        if eye_resp.has_focus() {
++            ui.painter().rect_stroke(eye_tile, t.radius_sm, Stroke::new(1.0, t.accent), StrokeKind::Inside);
++        }
++    }
+     if l.visible {
+-        // Centre the drawing in the column while preserving the visibility hit area.
+         icons::paint(ui, eye_cell, "eye", 15.0, t.layer_label_icon(l.label));
+-    }
++    } else if !t.pro && (eye_resp.hovered() || eye_resp.has_focus()) {
++        icons::paint(ui, eye_cell, "eye-off", 15.0, t.text_dim);
++    }
++    let tip = tl!("Toggle visibility");
++    eye_resp.widget_info(|| egui::WidgetInfo::selected(egui::Role::Button, true, l.visible, format!("{tip} · {}", l.name)));
++    let eye_resp = eye_resp.on_hover_text(tip);
+     eye_sweep(ctx, l, rect, &eye_resp, actions);
+     if eye_resp.clicked() {
+         // ⌥-click shows only this layer; ⌥-click it again to restore the others.
+@@ -423,7 +455,7 @@
+     let vector_rect = rc.masks.thumb(crate::mask_thumbs_ui::MaskKind::Vector);
+     // Photoshop frames the targeted thumbnail (pixels, mask or vector mask) of the active layer
+     // with corner brackets.
+-    if rc.row.primary && rc.ts > 0.0 {
++    if rc.row.primary && rc.ts > 0.0 && l.frame.is_none() {
+         let target = if app.ui.filter_mask_target == Some(l.id.0) && app.filter_mask_targeted() {
+             // The Smart Filters row's filter mask thumbnail carries the brackets.
+             None
+@@ -435,7 +467,7 @@
+             Some(thumb)
+         };
+         if let Some(r) = target {
+-            crate::mask_thumbs_ui::paint_brackets(painter, r, t.text);
++            crate::mask_thumbs_ui::paint_brackets(painter, r, if t.pro { t.text } else { t.accent });
+         }
+     }
+ }
+@@ -443,13 +475,12 @@
+ /// The layer name (and the kind sub-label of non-pixel rows); returns the name's rect.
+ fn paint_row_name(painter: &egui::Painter, t: &Tokens, rc: &RowCtx<'_>, x: f32, name_right: f32) -> Option<Rect> {
+     let (l, doc, rect, ts, selected) = (rc.l, rc.doc, rc.rect, rc.ts, rc.row.selected);
+-    let name_color = if l.visible { t.text } else { t.text_faint };
+-    let size = if t.pro { 12.0 } else { 13.0 };
+-    let font = if l.artboard().is_some() {
+-        // Artboards are named in bold, as in Photoshop.
++    let name_color = if l.visible || selected { t.text } else { t.text_dim };
++    let size = if t.pro { 12.0 } else { 12.5 };
++    let font = if l.artboard().is_some() || (rc.row.primary && !t.pro) {
+         theme::semibold(size)
+     } else if selected && !t.pro {
+-        theme::medium(13.0)
++        theme::medium(size)
+     } else {
+         egui::FontId::proportional(size)
+     };
+@@ -458,7 +489,7 @@
+     // Photoshop rows show only the name; the kind sub-label is a Studio-theme addition.
+     let is_pixel = t.pro || ts == 0.0 || matches!(l.content, LayerContent::Raster(_));
+     let name_rect = crate::layer_row_ui::truncated(painter, &l.name, font, name_color, italic, name_right - x).map(|galley| {
+-        let text_pos = pos2(x, rect.center().y - galley.size().y / 2.0 - if is_pixel { 0.0 } else { 7.0 });
++        let text_pos = pos2(x, rect.center().y - galley.size().y / 2.0 - if is_pixel { 0.0 } else { 6.5 });
+         let r = Rect::from_min_size(text_pos, galley.size());
+         painter.galley(text_pos, galley, name_color);
+         r
+@@ -470,7 +501,7 @@
+             LayerContent::Group(g) => crate::i18n::trn(crate::i18n::current(), g.children.len() as u64, "Group · {n} layer", "Group · {n} layers"),
+             other => tl!(other.kind_name()).to_string(),
+         };
+-        crate::layer_row_ui::label(painter, x, rect.center().y + 8.0, name_right, &sub, egui::FontId::proportional(11.0), t.text_faint);
++        crate::layer_row_ui::label(painter, x, rect.center().y + 7.5, name_right, &sub, egui::FontId::proportional(10.0), t.text_dim);
+     }
+     name_rect
+ }
+@@ -618,7 +649,7 @@
+     crate::channels_panel::fit_thumb(cell, w, h)
+ }
+
+-fn draw_layer_thumb(app: &mut PhotocraftApp, ctx: &egui::Context, ui: &egui::Ui, doc: &photocraft_doc::Document, l: &Layer, rect: Rect, selected: bool) {
++fn draw_layer_thumb(app: &mut PhotocraftApp, ctx: &egui::Context, ui: &egui::Ui, doc: &photocraft_doc::Document, l: &Layer, rect: Rect) {
+     let t = Tokens::get(ctx);
+     let p = ui.painter();
+     if let Some(f) = &l.frame {
+@@ -637,14 +668,15 @@
+     }
+     match &l.content {
+         LayerContent::Adjustment(_) | LayerContent::Group(_) => {
+-            p.rect_filled(rect, 6.0, t.field);
++            p.rect_filled(rect, t.radius_sm, t.field);
+             let icon = if l.is_group() { "folder" } else { "contrast" };
+-            icons::paint(ui, rect, icon, 18.0, t.icon);
++            icons::paint(ui, rect, icon, (rect.width() * 0.54).min(18.0), t.icon);
+         }
+         LayerContent::Text(_) => {
+             // Photoshop: type layers show a "T" tile rather than a pixel thumbnail.
+-            p.rect_filled(rect, if t.pro { 0.0 } else { 6.0 }, Color32::from_gray(if t.pro { 222 } else { 236 }));
+-            icons::paint(ui, rect, "type", 20.0, Color32::from_gray(40));
++            let (background, glyph) = if t.pro { (Color32::from_gray(222), Color32::from_gray(40)) } else { (t.field, t.icon) };
++            p.rect_filled(rect, if t.pro { 0.0 } else { t.radius_sm }, background);
++            icons::paint(ui, rect, "type", (rect.width() * 0.62).min(20.0), glyph);
+         }
+         // Gradient fills show the gradient itself (Photoshop); solid ones their colour.
+         LayerContent::Fill(f) if crate::gradient_ui::paint_thumbnail(ui, l.id, f, rect) => {}
+@@ -667,13 +699,7 @@
+             }
+         }
+     }
+-    let stroke = if t.pro {
+-        Stroke::new(1.0, Color32::from_gray(20))
+-    } else if selected {
+-        Stroke::new(1.5, t.text)
+-    } else {
+-        Stroke::new(1.0, t.field_border)
+-    };
+-    p.rect_stroke(rect, CornerRadius::same(if t.pro { 0 } else { 5 }), stroke, StrokeKind::Outside);
++    let stroke = if t.pro { Stroke::new(1.0, Color32::from_gray(20)) } else { Stroke::new(1.0, t.field_border) };
++    p.rect_stroke(rect, CornerRadius::same(if t.pro { 0 } else { t.radius_sm.round() as u8 }), stroke, StrokeKind::Outside);
+     crate::smart_ui::thumb_badge(ui, l, rect);
+ }
+--- a/crates/ui-egui/src/panels/layers.rs
++++ b/crates/ui-egui/src/panels/layers.rs
+@@ -430,8 +430,11 @@
+         // A click follows the selected thumbnail; name that action for screen readers even
+         // though dropping a whole layer row onto the same button always deletes the layer.
+         trash.widget_info(|| egui::WidgetInfo::labeled(egui::Role::Button, true, tl!(label)));
++        if !t.pro {
++            ui.add_space(4.0);
++        }
+         let new_layer =
+-            icons::button(ui, icons::FOOTER_NEW, icons::FOOTER_SIZE, false, &crate::shortcuts::tip_label(app, "Create a new layer", "layer.new.layer"));
++            icons::button(ui, icons::FOOTER_NEW, icons::FOOTER_SIZE, !t.pro, &crate::shortcuts::tip_label(app, "Create a new layer", "layer.new.layer"));
+         if new_layer.clicked() {
+             // A click makes the layer above the selection; ⌥-click asks first (the New Layer
+             // dialog) and ⌘/Ctrl-click adds it below, as in Photoshop.
+@@ -497,7 +500,7 @@
+             crate::i18n::fmt(tl!("Add a mask  (from the selection; {key} inverts)"), &[("key", &crate::shortcuts::pretty("Alt"))])
+         };
+         let mask_btn = ui.add_enabled_ui(mask_cmd.is_some(), |ui| icons::button(ui, "layer-mask", 26.0, false, &mask_tip)).inner;
+-        mask_btn.widget_info(|| egui::WidgetInfo::labeled(egui::Role::Button, true, &mask_tip));
++        mask_btn.widget_info(|| egui::WidgetInfo::labeled(egui::Role::Button, mask_cmd.is_some(), &mask_tip));
+         if mask_btn.clicked()
+             && let Some(cmd) = mask_cmd
+         {
+@@ -606,8 +609,11 @@
+ pub(crate) fn fx_button(ui: &mut egui::Ui, size: f32, tip: &str) -> egui::Response {
+     let t = Tokens::get(ui.ctx());
+     let (r, resp) = ui.allocate_exact_size(vec2(size, size), Sense::click());
+-    if resp.hovered() {
++    if resp.hovered() || resp.has_focus() {
+         ui.painter().rect_filled(r, t.radius_sm, t.hover);
++    }
++    if resp.has_focus() {
++        ui.painter().rect_stroke(r, t.radius_sm, egui::Stroke::new(1.0, t.accent), egui::StrokeKind::Inside);
+     }
+     let mut job = egui::text::LayoutJob::default();
+     job.append("fx", 0.0, egui::TextFormat { font_id: egui::FontId::proportional(15.0), color: t.icon, italics: true, ..Default::default() });
+--- a/crates/ui-egui/src/panels/layers_panel_ui.rs
++++ b/crates/ui-egui/src/panels/layers_panel_ui.rs
+@@ -193,12 +193,12 @@
+             if pro {
+                 24.0
+             } else {
+-                34.0
++                28.0
+             }
+         }
+         LayerThumbnailSize::Large => 48.0,
+     };
+-    let row = if thumb == 0.0 { 23.0 } else { (thumb + 8.0).max(if pro { 32.0 } else { 40.0 }) };
++    let row = if thumb == 0.0 { 23.0 } else { (thumb + 8.0).max(32.0) };
+     (thumb, row)
+ }
+
+--- a/crates/ui-egui/src/panels/options_bar.rs
++++ b/crates/ui-egui/src/panels/options_bar.rs
+@@ -88,10 +88,8 @@
+                 // Include its gutter in the container layout, including right-aligned actions.
+                 egui::Frame::NONE.inner_margin(egui::Margin { right: 2, ..Default::default() }).show(ui, |ui| {
+                     crate::direction::horizontal_centered(ui, |ui| {
+-                        if t.pro {
+-                            crate::chrome_ui::home_button(app, ui);
+-                            widgets::vline(ui, 22.0);
+-                        }
++                        crate::chrome_ui::home_button(app, ui);
++                        widgets::vline(ui, 18.0);
+                         // The tool preset picker is greyed while warping, as in the reference (#12503).
+                         let warping = app.ui.transform.as_ref().is_some_and(|s| s.warp.is_some());
+                         let tool_icon = ui
+--- a/crates/ui-egui/src/panels/status_bar.rs
++++ b/crates/ui-egui/src/panels/status_bar.rs
+@@ -38,28 +38,33 @@
+                         let animated = app.session.prefs().general.animated_zoom;
+                         crate::zoom_levels::set_from_field(&mut app.ui.views[i], field.dragged() || field.drag_started(), pct, animated);
+                     }
++                    let fit = crate::shortcuts::tip_label(app, "Fit on Screen", "view.fitOnScreen");
++                    if widgets::compact_button(ui, tl!("Fit"), control_h).on_hover_text(fit).clicked() {
++                        let _ = app.run("view.fitOnScreen", serde_json::json!({}));
++                    }
++                    let actual = crate::shortcuts::tip_label(app, "100%", "view.actualPixels");
++                    if widgets::compact_button(ui, "100%", control_h).on_hover_text(actual).clicked() {
++                        let _ = app.run("view.actualPixels", serde_json::json!({}));
++                    }
++                    widgets::vline(ui, 16.0);
++                    label(ui, &format!("{w} × {h} px"));
+                     widgets::vline(ui, 16.0);
+                     label(ui, &crate::i18n::fmt(tl!("{mode} Color · {bits} bit"), &[("mode", mode), ("bits", &bits.to_string())]));
+-                    widgets::vline(ui, 16.0);
+-                    label(ui, &format!("{w} × {h} px"));
+                     widgets::vline(ui, 16.0);
+                     label(ui, &crate::i18n::trn(crate::i18n::current(), layers as u64, "{n} layer", "{n} layers"));
+                 } else {
+                     label(ui, tl!("No document"));
+                 }
+                 if !app.ui.status.is_empty() {
+-                    widgets::vline(ui, 16.0);
+-                    let is_err = app.ui.status_error || app.ui.status.starts_with("Couldn");
+-                    ui.label(RichText::new(&app.ui.status).color(if is_err { t.warning } else { t.text_faint }));
++                    let budget = (ui.available_width() * 0.65).max(0.0);
++                    if budget > 24.0 {
++                        widgets::vline(ui, 16.0);
++                        let is_err = app.ui.status_error || app.ui.status.starts_with("Couldn");
++                        let msg = RichText::new(&app.ui.status).color(if is_err { t.warning } else { t.text_faint });
++                        ui.add_sized(vec2(budget, control_h), egui::Label::new(msg).truncate()).on_hover_text(&app.ui.status);
++                    }
+                 }
+                 ui.with_layout(crate::direction::trailing(), |ui| {
+-                    if app.session.active().is_some()
+-                        && !t.pro
+-                        && widgets::compact_button(ui, tl!("Fit"), control_h).clicked()
+-                        && let Some(i) = app.session.active_index()
+-                    {
+-                        app.ui.views[i].fit_pending = true;
+-                    }
+                     if app.session.has_jobs() {
+                         ui.add_space(6.0);
+                         crate::jobs_ui::status_progress(app, ui);
+--- a/crates/ui-egui/src/panels/title_bar.rs
++++ b/crates/ui-egui/src/panels/title_bar.rs
+@@ -63,9 +63,12 @@
+                     ui.add_space(lead + 4.0);
+                 }
+                 if !system {
+-                    let side = if t.pro { 18.0 } else { 20.0 };
+-                    let (mark, _) = ui.allocate_exact_size(vec2(side, side), Sense::hover());
+-                    crate::brand::paint_mark(ui, mark);
++                    if t.pro {
++                        let (mark, _) = ui.allocate_exact_size(vec2(18.0, 18.0), Sense::hover());
++                        crate::brand::paint_mark(ui, mark);
++                    } else {
++                        ui.label(egui::RichText::new("P一下").font(theme::medium(13.0)).color(t.text));
++                    }
+                     ui.add_space(6.0);
+                 }
+                 // With the macOS menu bar the menus are at the top of the screen instead. Either way
+@@ -107,10 +110,16 @@
+                         app.ui.workspace = ws;
+                         crate::menus::apply_workspace(app);
+                     }
+-                    if icons_shown >= 1
+-                        && icons::button(ui, "search", 28.0, app.ui.palette_open, &crate::shortcuts::tip_label(app, "Search commands", "edit.search")).clicked()
+-                    {
+-                        app.ui.palette_open = !app.ui.palette_open;
++                    if icons_shown >= 1 {
++                        let tip = crate::shortcuts::tip_label(app, "Search commands", "edit.search");
++                        let search = if !t.pro && room >= 680.0 {
++                            widgets::compact_button(ui, &tip, 26.0)
++                        } else {
++                            icons::button(ui, "search", 28.0, app.ui.palette_open, &tip)
++                        };
++                        if search.clicked() {
++                            app.ui.palette_open = !app.ui.palette_open;
++                        }
+                     }
+                     let (theme_icon, appearance_label) = match app.session.prefs().interface.appearance_mode {
+                         photocraft_engine::prefs::AppearanceMode::Auto => ("monitor", tl!("Auto")),
+--- a/crates/ui-egui/src/panels/toolbar.rs
++++ b/crates/ui-egui/src/panels/toolbar.rs
+@@ -6,7 +6,7 @@
+
+ /// The toolbar's single-column width and its second column's button width, in points.
+ pub(crate) fn toolbar_columns(pro: bool) -> (f32, f32) {
+-    if pro { (40.0, 30.0) } else { (50.0, 36.0) }
++    if pro { (40.0, 30.0) } else { (42.0, 30.0) }
+ }
+
+ /// The toolbar panel's width in points: one column, or two when the header chevron asks for them.
+@@ -167,7 +167,7 @@
+ pub fn toolbar(app: &mut PhotocraftApp, ui: &mut egui::Ui) {
+     let t = Tokens::get(ui.ctx());
+     let (_, bx) = toolbar_columns(t.pro);
+-    let m = if t.pro { 5i8 } else { 7i8 };
++    let m = if t.pro { 5i8 } else { 6i8 };
+     let sections = visible_sections(&app.session.prefs().toolbar.hidden);
+     // Two columns when the header chevron asks for them; a column that doesn't fit scrolls.
+     let double = app.ui.panels.toolbar_double;
+@@ -184,7 +184,7 @@
+             let (shrink, grow) = if side == ToolbarSide::Right { ("chevrons-right", "chevrons-left") } else { ("chevrons-left", "chevrons-right") };
+             icons::paint(ui, cr, if double { shrink } else { grow }, 11.0, if resp.hovered() { t.text } else { t.text_faint });
+             resp.widget_info(|| egui::WidgetInfo::labeled(egui::Role::Button, true, tl!("Toolbar")));
+-            if resp.clicked() {
++            if resp.on_hover_text(tl!("Toolbar")).clicked() {
+                 app.ui.panels.toolbar_double = !double;
+             }
+             let other = side.other();
+@@ -202,22 +202,9 @@
+             }
+         });
+         ui.add_space(4.0);
+-        // Subtle violet wash at the bottom of the toolbar.
+-        let full = ui.max_rect();
+-        if !t.bevel && !t.pro && t.dark() {
+-            let mut mesh = egui::Mesh::default();
+-            let r = Rect::from_min_max(pos2(full.left() - 7.0, full.bottom() - 260.0), pos2(full.right() + 7.0, full.bottom() + 8.0));
+-            let top = Color32::TRANSPARENT;
+-            let bottom = Color32::from_rgba_unmultiplied(90, 70, 190, 34);
+-            mesh.colored_vertex(r.left_top(), top);
+-            mesh.colored_vertex(r.right_top(), top);
+-            mesh.colored_vertex(r.right_bottom(), bottom);
+-            mesh.colored_vertex(r.left_bottom(), bottom);
+-            mesh.add_triangle(0, 1, 2);
+-            mesh.add_triangle(0, 2, 3);
+-            ui.painter().add(mesh);
+-        }
+-        ui.spacing_mut().item_spacing = vec2(2.0, 3.0);
++        let content_width = ui.max_rect().width();
++        let tool_size = vec2(bx, if t.pro || double { bx } else { 26.0 });
++        ui.spacing_mut().item_spacing = vec2(2.0, if t.pro { 3.0 } else { 2.0 });
+         let flyout_id = egui::Id::unique("tool-flyout");
+         let held_id = flyout_id.with("held");
+         if ui.input(|i| i.pointer.any_pressed()) {
+@@ -262,7 +249,7 @@
+                                     Some(sc) => format!("{}  ({})", tl!(tool.label()), crate::shortcuts::pretty(&sc)),
+                                     None => tl!(tool.label()).to_string(),
+                                 };
+-                                let resp = icons::button_with_icon_size_tip(ui, icons::tool_icon(tool), bx, toolbar_icon_size(bx, t.pro), sel, &tip, tool_tips);
++                                let resp = icons::button_in_box(ui, icons::tool_icon(tool), tool_size, toolbar_icon_size(bx, t.pro), sel, &tip, tool_tips);
+                                 if slot.len() > 1 {
+                                     paint_toolbar_flyout_indicator(ui, &t, &resp, side);
+                                 }
+@@ -449,7 +436,7 @@
+         ui.add_space(if t.pro { 8.0 } else { 14.0 });
+         // Centred in the tool column as it is before the tools scroll: a scroll bar widens the
+         // UI it is in, and the chips moved over by its width (#7316).
+-        color_chips(app, ui, double, full.width());
++        color_chips(app, ui, double, content_width);
+         ui.add_space(8.0);
+
+         let layout = if double { egui::Layout::left_to_right(egui::Align::Min) } else { egui::Layout::top_down(egui::Align::Min) };
+@@ -530,7 +517,7 @@
+ /// Glyph size of a toolbar tool button. Pro fills two thirds of the button, close to Photoshop's
+ /// toolbar glyphs (#2665); the other themes keep the general icon-button proportion.
+ pub(super) fn toolbar_icon_size(box_size: f32, pro: bool) -> f32 {
+-    (box_size * if pro { 2.0 / 3.0 } else { 0.52 }).round()
++    (box_size * if pro { 2.0 / 3.0 } else { 0.60 }).round()
+ }
+
+ /// Paints a triangle on the bottom corner of an icon button that faces the canvas (bottom right,
+@@ -555,7 +542,7 @@
+ const CHIP_ICON: f32 = 13.0;
+
+ /// Studio themes: round chip diameter and the background chip's vertical offset (points).
+-pub(super) const STUDIO_CHIP: (f32, f32) = (30.0, 19.0);
++pub(super) const STUDIO_CHIP: (f32, f32) = (24.0, 14.0);
+
+ /// Room under the round chips for the Default Colors and Switch Colors buttons.
+ const STUDIO_ROW: f32 = 15.0;
+--- a/crates/ui-egui/src/theme.rs
++++ b/crates/ui-egui/src/theme.rs
+@@ -1,8 +1,7 @@
+ //! Design system: themes, colour tokens, radii, typography.
+ //!
+-//! - **Studio**: near-black surfaces, rounded cards, Inter + JetBrains Mono, soft violet
+-//!   accent. Modelled on the look of modern pro editors (such as Photoshop 2025).
+-//! - **Studio Light**: the same system on light surfaces.
++//! - **Studio**: P一下's graphite palette with jade accents and compact controls.
++//! - **Studio Light**: the same hierarchy on light surfaces.
+ //! - **Classic**: a deliberately Windows-2000-era look (grey bevels, square corners, navy selection)
+ //!   for people who prefer it.
+ //! - **Adwaita** (Light and Dark): the Studio layout in GNOME's libadwaita palette, so the app sits
+@@ -334,41 +333,41 @@
+             },
+             ThemeKind::Studio => Tokens {
+                 kind,
+-                chrome: Color32::from_rgb(20, 20, 21),
+-                canvas: Color32::from_rgb(14, 14, 15),
+-                canvas_dot: Color32::from_rgb(46, 46, 50),
+-                dock: Color32::from_rgb(17, 17, 18),
+-                card: Color32::from_rgb(26, 26, 28),
+-                card_border: Color32::from_rgb(40, 40, 44),
+-                field: Color32::from_rgb(35, 35, 38),
+-                field_border: Color32::from_rgb(52, 52, 57),
+-                hover: Color32::from_rgb(44, 44, 48),
+-                pressed: Color32::from_rgb(56, 56, 62),
+-                text: Color32::from_rgb(236, 236, 240),
+-                text_dim: Color32::from_rgb(150, 150, 158),
+-                text_faint: Color32::from_rgb(96, 96, 104),
+-                icon: Color32::from_rgb(196, 196, 204),
+-                accent: Color32::from_rgb(139, 124, 246),
+-                accent_soft: Color32::from_rgba_unmultiplied(139, 124, 246, 46),
+-                accent_border: Color32::from_rgba_unmultiplied(160, 148, 255, 110),
+-                accent_text: Color32::from_rgb(214, 208, 255),
+-                separator: Color32::from_rgb(38, 38, 42),
+-                shadow: Color32::from_black_alpha(140),
+-                primary_bg: Color32::from_rgb(246, 246, 248),
+-                primary_text: Color32::from_rgb(12, 12, 14),
+-                danger: Color32::from_rgb(240, 96, 96),
+-                warning: Color32::from_rgb(240, 190, 90),
+-                radius_sm: 6.0,
+-                radius: 8.0,
+-                radius_lg: 12.0,
++                chrome: Color32::from_rgb(27, 34, 37),
++                canvas: Color32::from_rgb(20, 25, 28),
++                canvas_dot: Color32::from_rgb(44, 56, 59),
++                dock: Color32::from_rgb(25, 31, 34),
++                card: Color32::from_rgb(32, 39, 42),
++                card_border: Color32::from_rgb(56, 68, 73),
++                field: Color32::from_rgb(39, 48, 52),
++                field_border: Color32::from_rgb(81, 95, 100),
++                hover: Color32::from_rgb(48, 60, 64),
++                pressed: Color32::from_rgb(55, 70, 73),
++                text: Color32::from_rgb(231, 238, 240),
++                text_dim: Color32::from_rgb(165, 182, 185),
++                text_faint: Color32::from_rgb(135, 154, 158),
++                icon: Color32::from_rgb(187, 202, 204),
++                accent: Color32::from_rgb(70, 143, 125),
++                accent_soft: Color32::from_rgba_unmultiplied(142, 219, 198, 44),
++                accent_border: Color32::from_rgb(129, 200, 182),
++                accent_text: Color32::from_rgb(142, 219, 198),
++                separator: Color32::from_rgb(52, 64, 69),
++                shadow: Color32::from_black_alpha(94),
++                primary_bg: Color32::from_rgb(142, 219, 198),
++                primary_text: Color32::from_rgb(20, 39, 34),
++                danger: Color32::from_rgb(255, 156, 147),
++                warning: Color32::from_rgb(231, 190, 121),
++                radius_sm: 4.0,
++                radius: 6.0,
++                radius_lg: 9.0,
+                 bevel: false,
+                 pro: false,
+                 // Studio Dark uses the compact overlapping square foreground/background
+                 // chips rather than the large stacked circles (#3494).
+                 round_chips: false,
+-                tab_strip: Color32::TRANSPARENT,
+-                row_selected: Color32::TRANSPARENT,
+-                histogram_bg: Color32::from_rgb(14, 14, 15),
++                tab_strip: Color32::from_rgb(25, 31, 34),
++                row_selected: Color32::from_rgb(43, 70, 66),
++                histogram_bg: Color32::from_rgb(22, 29, 32),
+                 histogram_level: 225,
+                 caption_close: Color32::from_rgb(196, 43, 28),
+                 caption_close_text: Color32::WHITE,
+@@ -376,39 +375,39 @@
+             },
+             ThemeKind::StudioLight => Tokens {
+                 kind,
+-                chrome: Color32::from_rgb(246, 246, 248),
+-                canvas: Color32::from_rgb(226, 226, 230),
+-                canvas_dot: Color32::from_rgb(200, 200, 206),
+-                dock: Color32::from_rgb(240, 240, 243),
+-                card: Color32::from_rgb(252, 252, 253),
+-                card_border: Color32::from_rgb(222, 222, 228),
+-                field: Color32::from_rgb(242, 242, 245),
+-                field_border: Color32::from_rgb(214, 214, 220),
+-                hover: Color32::from_rgb(232, 232, 237),
+-                pressed: Color32::from_rgb(220, 220, 226),
+-                text: Color32::from_rgb(24, 24, 28),
+-                text_dim: Color32::from_rgb(96, 96, 106),
+-                text_faint: Color32::from_rgb(150, 150, 160),
+-                icon: Color32::from_rgb(60, 60, 68),
+-                accent: Color32::from_rgb(108, 92, 231),
+-                accent_soft: Color32::from_rgba_unmultiplied(108, 92, 231, 36),
+-                accent_border: Color32::from_rgba_unmultiplied(108, 92, 231, 120),
+-                accent_text: Color32::from_rgb(80, 64, 200),
+-                separator: Color32::from_rgb(226, 226, 232),
+-                shadow: Color32::from_black_alpha(50),
+-                primary_bg: Color32::from_rgb(20, 20, 24),
+-                primary_text: Color32::from_rgb(250, 250, 252),
+-                danger: Color32::from_rgb(210, 60, 60),
+-                warning: Color32::from_rgb(190, 130, 20),
+-                radius_sm: 6.0,
+-                radius: 8.0,
+-                radius_lg: 12.0,
++                chrome: Color32::from_rgb(238, 243, 242),
++                canvas: Color32::from_rgb(220, 229, 227),
++                canvas_dot: Color32::from_rgb(186, 202, 199),
++                dock: Color32::from_rgb(231, 238, 236),
++                card: Color32::from_rgb(248, 250, 249),
++                card_border: Color32::from_rgb(196, 209, 206),
++                field: Color32::from_rgb(240, 245, 243),
++                field_border: Color32::from_rgb(157, 175, 170),
++                hover: Color32::from_rgb(226, 238, 234),
++                pressed: Color32::from_rgb(212, 228, 223),
++                text: Color32::from_rgb(25, 42, 43),
++                text_dim: Color32::from_rgb(70, 92, 94),
++                text_faint: Color32::from_rgb(88, 112, 113),
++                icon: Color32::from_rgb(55, 78, 80),
++                accent: Color32::from_rgb(40, 105, 88),
++                accent_soft: Color32::from_rgba_unmultiplied(40, 105, 88, 32),
++                accent_border: Color32::from_rgb(57, 121, 102),
++                accent_text: Color32::from_rgb(36, 95, 81),
++                separator: Color32::from_rgb(203, 216, 213),
++                shadow: Color32::from_black_alpha(37),
++                primary_bg: Color32::from_rgb(36, 95, 81),
++                primary_text: Color32::from_rgb(248, 250, 249),
++                danger: Color32::from_rgb(161, 58, 54),
++                warning: Color32::from_rgb(119, 80, 25),
++                radius_sm: 4.0,
++                radius: 6.0,
++                radius_lg: 9.0,
+                 bevel: false,
+                 pro: false,
+                 round_chips: true,
+-                tab_strip: Color32::TRANSPARENT,
+-                row_selected: Color32::TRANSPARENT,
+-                histogram_bg: Color32::from_gray(40),
++                tab_strip: Color32::from_rgb(231, 238, 236),
++                row_selected: Color32::from_rgb(213, 232, 226),
++                histogram_bg: Color32::from_rgb(30, 42, 41),
+                 histogram_level: 240,
+                 caption_close: Color32::from_rgb(196, 43, 28),
+                 caption_close_text: Color32::WHITE,
+@@ -1021,6 +1020,7 @@
+     // including when an integration or restored egui state pinned its own theme preference.
+     ctx.set_theme(egui::ThemePreference::System);
+     let t = Tokens::for_kind(kind);
++    let studio = matches!(kind, ThemeKind::Studio | ThemeKind::StudioLight);
+     ctx.data_mut(|d| d.insert_temp(egui::Id::unique("photocraft-theme"), t));
+     let mut v = if t.dark() { Visuals::dark() } else { Visuals::light() };
+     v.panel_fill = t.chrome;
+@@ -1064,15 +1064,23 @@
+     }
+     ctx.set_visuals(v);
+     ctx.global_style_mut(|s| {
++        let body_size = if studio {
++            13.0
++        } else if t.pro {
++            12.0
++        } else {
++            12.5
++        };
++        let button_font = if studio { medium(12.5) } else { FontId::proportional(body_size) };
+         s.text_styles = [
+-            (TextStyle::Small, FontId::proportional(10.5)),
+-            (TextStyle::Body, FontId::proportional(if t.pro { 12.0 } else { 12.5 })),
+-            (TextStyle::Button, FontId::proportional(if t.pro { 12.0 } else { 12.5 })),
+-            (TextStyle::Heading, semibold(15.0)),
++            (TextStyle::Small, FontId::proportional(if studio { 11.5 } else { 10.5 })),
++            (TextStyle::Body, FontId::proportional(body_size)),
++            (TextStyle::Button, button_font),
++            (TextStyle::Heading, semibold(if studio { 16.0 } else { 15.0 })),
+             (TextStyle::Monospace, FontId::monospace(12.0)),
+         ]
+         .into();
+-        s.spacing.item_spacing = egui::vec2(8.0, 6.0);
++        s.spacing.item_spacing = if studio { egui::vec2(7.0, 5.0) } else { egui::vec2(8.0, 6.0) };
+         s.spacing.button_padding = egui::vec2(10.0, 4.0);
+         s.spacing.interact_size = egui::vec2(24.0, 24.0);
+         s.spacing.slider_width = 150.0;
+@@ -1089,7 +1097,7 @@
+         if scroll.floating {
+             scroll.interact_handle_opacity = 1.0;
+             scroll.interact_background_opacity = 0.4;
+-            scroll.floating_width = 4.0;
++            scroll.floating_width = if studio { 5.0 } else { 4.0 };
+         }
+         s.spacing.scroll = scroll;
+         s.spacing.tooltip_width = 280.0;
+--- a/crates/ui-egui/src/theme/tests.rs
++++ b/crates/ui-egui/src/theme/tests.rs
+@@ -200,13 +200,18 @@
+ }
+
+ #[test]
+-fn studio_text_contrast_is_high() {
+-    let t = Tokens::for_kind(ThemeKind::Studio);
+-    let p = Tokens::for_kind(ThemeKind::Pro);
+-    assert!(p.pro && !t.pro);
+-    let lum = |c: Color32| 0.2126 * c.r() as f32 + 0.7152 * c.g() as f32 + 0.0722 * c.b() as f32;
+-    assert!(lum(t.text) - lum(t.card) > 180.0);
+-    assert!(lum(t.text_dim) - lum(t.card) > 90.0);
++fn studio_text_and_focus_have_enough_contrast() {
++    for kind in [ThemeKind::Studio, ThemeKind::StudioLight] {
++        let t = Tokens::for_kind(kind);
++        for background in [t.canvas, t.chrome, t.dock, t.card, t.field, t.hover, t.pressed, t.row_selected] {
++            assert!(contrast(t.text, background) >= 4.5, "{kind:?}: body text on {background:?}");
++            assert!(contrast(t.text_dim, background) >= 4.5, "{kind:?}: secondary text on {background:?}");
++            assert!(contrast(t.accent_text, background) >= 4.5, "{kind:?}: selected text on {background:?}");
++            assert!(contrast(t.accent_border, background) >= 3.0, "{kind:?}: focus outline on {background:?}");
++        }
++        assert!(contrast(t.primary_text, t.primary_bg) >= 4.5, "{kind:?}: primary button");
++        assert!(contrast(Color32::WHITE, t.accent) >= 3.0, "{kind:?}: checked control symbol");
++    }
+ }
+
+ /// WCAG 2 contrast ratio, the measure libadwaita's own palette is held to.
+--- a/crates/ui-egui/src/tools/retouch_ui.rs
++++ b/crates/ui-egui/src/tools/retouch_ui.rs
+@@ -914,22 +914,20 @@
+             crate::widgets::checkbox(ui, &mut o.sample_all.spot_healing, tl!("Sample All Layers"));
+         }
+         Tool::Remove => {
+-            // Photoshop's options bar: Sample All Layers, Create a new layer, Remove after each
+-            // stroke; with strokes waiting, ✓ applies them and ⊘ drops them.
++            // Keep batch actions next to the mode that enables them.
+             crate::widgets::checkbox(ui, &mut o.sample_all.remove, tl!("Sample All Layers"));
+             ui.add_enabled_ui(composite, |ui| crate::widgets::checkbox(ui, &mut o.remove_new_layer, tl!("Create a new layer")));
+             crate::widgets::checkbox(ui, &mut o.remove_after_each_stroke, tl!("Remove after each stroke"));
+             if !app.remove_pending.is_empty() {
+-                ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+-                    if crate::widgets::primary_button(ui, "✓", 32.0)
+-                        .on_hover_text(crate::i18n::fmt(tl!("Apply the removal ({key})"), &[("key", &crate::shortcuts::pretty("Enter"))]))
+-                        .clicked()
+-                    {
+-                        remove_pending_commit(app);
+-                    } else if crate::widgets::secondary_button(ui, "⊘", 32.0).on_hover_text(tl!("Cancel (Esc)")).clicked() {
+-                        remove_pending_cancel(app);
+-                    }
+-                });
++                crate::widgets::vline(ui, 18.0);
++                let cancel = crate::widgets::secondary_button(ui, tl!("Cancel"), 48.0).on_hover_text(tl!("Cancel (Esc)"));
++                let apply = crate::widgets::primary_button(ui, tl!("Apply"), 52.0)
++                    .on_hover_text(crate::i18n::fmt(tl!("Apply the removal ({key})"), &[("key", &crate::shortcuts::pretty("Enter"))]));
++                if apply.clicked() {
++                    remove_pending_commit(app);
++                } else if cancel.clicked() {
++                    remove_pending_cancel(app);
++                }
+             }
+         }
+         Tool::Patch => {

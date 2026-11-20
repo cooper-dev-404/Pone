@@ -13,6 +13,17 @@ fi
 
 profile="$state/profiles/$version"
 examples="$state/Examples"
+preview=false
+if [[ "${1:-}" == --preview-ui ]]; then
+    if [[ "$platform" != Darwin ]]; then
+        printf '%s\n' '编辑器界面预览需要 macOS。' >&2
+        exit 2
+    fi
+    shift
+    preview=true
+    profile="$state/profiles/$version-ui"
+    examples="$state/Editor Preview/Examples"
+fi
 mkdir -p "$profile/Presets" "$examples"
 
 seed() (
@@ -28,7 +39,13 @@ seed() (
     fi
 )
 
-if [[ "$platform" == Darwin ]]; then
+if [[ "$preview" == true ]]; then
+    executable="$state/Editor Preview/P一下.app/Contents/MacOS/photocraft"
+    if [[ ! -x "$executable" ]]; then
+        printf '%s\n' '请先运行 bash editor-ui/build-macos.sh 构建界面预览。' >&2
+        exit 1
+    fi
+elif [[ "$platform" == Darwin ]]; then
     runtime="$state/runtimes/$version/PhotoCraft.app"
     executable="$runtime/Contents/MacOS/photocraft"
     if [[ ! -x "$executable" ]]; then
