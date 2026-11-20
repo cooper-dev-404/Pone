@@ -15,7 +15,7 @@ if [[ "${1:-}" == --install ]]; then
     shift
 fi
 if (( $# != 0 )); then
-    printf '%s\n' '用法 bash editor-ui/build-macos.sh [--install]' >&2
+    printf '%s\n' '用法 bash app/editor-ui/build-macos.sh [--install]' >&2
     exit 2
 fi
 

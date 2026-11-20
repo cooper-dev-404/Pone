@@ -50,7 +50,7 @@ if [[ "$preview" == true ]]; then
     fi
     executable="$runtime/Contents/MacOS/photocraft"
     if [[ ! -x "$executable" ]]; then
-        printf '%s\n' '请先运行 bash editor-ui/build-macos.sh 构建界面预览。' >&2
+        printf '%s\n' '请先运行 bash app/editor-ui/build-macos.sh 构建界面预览。' >&2
         exit 1
     fi
 elif [[ "$platform" == Darwin ]]; then
@@ -77,7 +77,7 @@ case "$base_version" in
     *) printf '工作台需要 PhotoCraft %s。当前为 %s\n' "$version" "$base_version" >&2; exit 1 ;;
 esac
 
-for sample in "$workbench"/sample/*; do
+for sample in "$workbench"/../examples/practice/*; do
     seed "$sample" "$examples/$(basename -- "$sample")"
 done
 seed "$workbench/profile/actions.json" "$profile/Presets/actions.json"
