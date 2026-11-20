@@ -151,8 +151,8 @@ bash 链接素材.command package ./商品稿.pcraft --relink 12 ./新位置/商
 - 在 Linux 上验证了系统字体和临时用户字体的读取、实际渲染以及保存重开后的改字。字体交接检查用 PSD、PSB 和 `.pcraft` 样稿验证了混排图层、画板路径、隐藏分组的显隐状态以及损坏文件提示。Mac 字体册新增字体后刷新及字体检查的文件选择待实机确认。 [自动验收结果](verification/cli-results.json)
 - 图层和切片样稿生成了 16 张 PNG 与 WebP，验证了蒙版透明边、重叠切片和原稿保留。额外用 PSD 验证了分组内标记图层、1.5× 和同名切片。 [自动验收结果](verification/cli-results.json)
 - 链接交接样本验证了断链定位、重链保留变换，以及同名素材、共享实例和整包搬移后的重新读取。Mac 文件选择留待实机验收。 [自动验收结果](verification/cli-results.json)
-- [交接样稿](verification/复杂交接样本.psd) 包含智能对象、正片叠底组、组内剪贴曲线、蒙版和文字。PSD 和 16 位 PSB 已在 Photoshop 2021 与 PhotoCraft 之间往返。文字重算提示及缺失字体见验收记录。 [Mac 交接记录](../bitmap-editor-research/photoshop-coverage.md#其他-mac-补验记录)
-- Mac 首装、系统拼音、用户中文字体、4K Metal 导出及低空间保存已有实测结果。批量工具系统文件面板、数位板和桌面异常恢复仍待补验。 [Mac 补验记录](../bitmap-editor-research/photoshop-coverage.md#其他-mac-补验记录)
+- [交接样稿](verification/复杂交接样本.psd) 包含智能对象、正片叠底组、组内剪贴曲线、蒙版和文字。PSD 和 16 位 PSB 已在 Photoshop 2021 与 PhotoCraft 之间往返。文字重算造成的边界和行位置偏差见验收记录。 [Mac 交接记录](../bitmap-editor-research/photoshop-coverage.md#photoshop-文字重算对照)
+- Mac 首装、系统拼音、用户中文字体、4K Metal 导出、批量出图文件面板、低空间保存和异常重启恢复已有实测结果。CSV 套版及两种检查工具的系统文件面板、数位板仍待补验。 [Mac 补验记录](../bitmap-editor-research/photoshop-coverage.md#其他-mac-补验记录)
 
 运行引擎验收：
 
