@@ -58,12 +58,12 @@ P一下基于 PhotoCraft 0.23.1 开发，面向平面设计、电商运营和需
 可安装的 `P一下.app` 目前从 `codex/editor-ui` 界面预览分支构建。准备 Mac、Xcode 命令行工具和 Rustup，首次构建需要联网获取固定版本的源码、翻译、字体和依赖。
 
 ```sh
-git clone --branch codex/editor-ui https://github.com/cooper-dev-404/p-yixia.git
-cd p-yixia
+git clone --branch codex/editor-ui https://github.com/cooper-dev-404/Pone.git
+cd Pone
 rustup toolchain install 1.95.0 --profile minimal
 bash app/editor-ui/build-macos.sh --install
 ```
 
 安装后从访达的「应用程序」打开 `P一下.app`。构建脚本会生成当前 Mac 架构的本地签名应用，覆盖安装时保留上一版应用包。
 
-想在仓库里先试用修图流程，可以执行 `bash app/P一下.command --remove`。这个入口使用同版本的官方 PhotoCraft 运行时，打开可以直接编辑和保存的练习副本。 [P一下构建与预览](https://github.com/cooper-dev-404/p-yixia/blob/codex/editor-ui/docs/mac-guide.md#编辑器界面预览) · [离线试用与工程回归](docs/mac-guide.md)
+想在仓库里先试用修图流程，可以执行 `bash app/P一下.command --remove`。这个入口使用同版本的官方 PhotoCraft 运行时，打开可以直接编辑和保存的练习副本。 [P一下构建与预览](https://github.com/cooper-dev-404/Pone/blob/codex/editor-ui/docs/mac-guide.md#编辑器界面预览) · [离线试用与工程回归](docs/mac-guide.md)
