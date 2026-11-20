@@ -1,6 +1,6 @@
 # 专业位图编辑器需求与开源底座对比
 
-产品能力现已细化为 [Photoshop 位图能力验收矩阵](photoshop-coverage.md) 和 [带候选命令的 CSV](photoshop-coverage.csv)。
+产品能力现已细化为 [Photoshop 位图能力验收矩阵](../photoshop-coverage.md) 和 [带候选命令的 CSV](../photoshop-coverage.csv)。
 
 目标是一款面向平面设计师的 Mac 数字位图工作台。典型工作是素材修图、多图合成、数字海报和电商活动图、系列尺寸出图，以及保存可编辑源文件。用户已明确要求完整的专业位图能力，主界面也应提供能直接找到的工具入口。以下场景是根据这个目标拟出的验收样本，具体分辨率和设计稿用于验证操作。
 
@@ -24,7 +24,7 @@
 
 在 Linux 上用 PhotoCraft v0.23.1 的官方 CLI 打开上一轮由 GIMP 生成的 960 × 720 RGB PSD，保留了原图、背景和图层蒙版。新增剪贴曲线后，参考蒙版外的像素保持一致。再加入中文标题「新品发布」，存为 PSD 后重新打开，四层仍分别是文字、剪贴曲线、带蒙版的原图和背景。重开前后渲染逐像素一致。重开后还实际把标题改成了「周末上新」，导出了 480 × 360 的 PNG。原尺寸无损 WebP 和同一版 PNG 的像素也一致。
 
-这组结果来自同一份合成样本。实测方式是 PhotoCraft CLI 对文件读取、编辑、保存和重新渲染。Photoshop 打开结果、Mac 图形界面、其他字体、多画板 PSD 和复杂智能对象需要用新的样本验证。PhotoCraft 上游的 Photoshop 原作兼容统计和单样本自我往返是不同测试。 [原尺寸渲染](example.png) · [可编辑 PSD](example.psd) · [重开后的图层属性](example-layers.json) · [改字与缩尺寸后的输出](example-480.png)
+这组结果来自同一份合成样本。实测方式是 PhotoCraft CLI 对文件读取、编辑、保存和重新渲染。Photoshop 打开结果、Mac 图形界面、其他字体、多画板 PSD 和复杂智能对象需要用新的样本验证。PhotoCraft 上游的 Photoshop 原作兼容统计和单样本自我往返是不同测试。 [原尺寸渲染](samples/example.png) · [可编辑 PSD](../../examples/practice/产品合成.psd) · [重开后的图层属性](samples/example-layers.json) · [改字与缩尺寸后的输出](samples/example-480.png)
 
 ## 功能按照设计任务验收
 

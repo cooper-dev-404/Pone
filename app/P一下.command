@@ -52,7 +52,7 @@ case "$base_version" in
     *) printf '工作台需要 PhotoCraft %s。当前为 %s\n' "$version" "$base_version" >&2; exit 1 ;;
 esac
 
-for sample in "$workbench"/sample/*; do
+for sample in "$workbench"/../examples/practice/*; do
     seed "$sample" "$examples/$(basename -- "$sample")"
 done
 seed "$workbench/profile/actions.json" "$profile/Presets/actions.json"

@@ -15,7 +15,12 @@ from link_handoff import inspect_links, linked_layers, package, write_report
 from template_batch import deliver as deliver_template, template_slots
 
 
-ROOT = Path(__file__).resolve().parent
+REPO = Path(__file__).resolve().parent.parent
+PRACTICE = REPO / 'examples' / 'practice'
+TEMPLATES = REPO / 'examples' / 'templates'
+EVIDENCE = REPO / 'tests' / 'evidence'
+
+
 def by_name(editor, document):
     return {layer['name']: layer for layer in editor.info(document)['layers']}
 
@@ -26,7 +31,7 @@ def require(condition, message):
 
 
 def psd(editor, staging):
-    source = ROOT / 'sample' / '产品合成.psd'
+    source = PRACTICE / '产品合成.psd'
     layers = by_name(editor, source)
     require(layers['商品原图']['hasMask'], 'source PSD lost the product mask')
     require(layers['主体曲线']['clipped'], 'source PSD lost the clipped curves adjustment')
@@ -46,7 +51,7 @@ def psd(editor, staging):
 
 
 def local_font(editor, staging, family):
-    source = ROOT / 'sample' / '精修素材.png'
+    source = PRACTICE / '精修素材.png'
     font_list, family_info = editor.edit(source, [('type.fonts', {}), ('type.fonts', {'family': family})])
     faces = family_info['result']['faces']
     require(family in font_list['result']['families'] and faces, f'Font is not listed by the text engine: {family}')
@@ -83,7 +88,7 @@ def local_font(editor, staging, family):
 
 
 def font_report(editor, staging):
-    template = ROOT / 'templates' / '商品上新模板.pcraft'
+    template = TEMPLATES / '商品上新模板.pcraft'
     board = '社媒方图'
     label = '活动标题 <主标题>'
     group = '标题校对组'
@@ -124,9 +129,9 @@ def linked_handoff(editor, staging):
     second = staging / 'blue' / '相机.png'
     for destination, image in [(first, '琥珀款.png'), (second, '海蓝款.png')]:
         destination.parent.mkdir()
-        destination.write_bytes((ROOT / 'templates' / image).read_bytes())
+        destination.write_bytes((TEMPLATES / image).read_bytes())
     source = staging / '商品链接.pcraft'
-    editor.edit(ROOT / 'sample' / '产品合成.psd', [
+    editor.edit(PRACTICE / '产品合成.psd', [
         ('file.placeLinked', {'path': str(first), 'center': [420, 380], 'scale': 40}),
         ('edit.transform', {'rotate': 7}),
         ('layer.setProps', {'name': '左侧相机'}),
@@ -190,7 +195,7 @@ def smart_content(document, name):
 
 
 def complex_psd(editor, staging):
-    source = ROOT / 'sample' / '产品合成.psd'
+    source = PRACTICE / '产品合成.psd'
     image = staging / '横幅素材.png'
     placed = staging / '组合.pcraft'
     changed = staging / '替换后.pcraft'
@@ -206,7 +211,7 @@ def complex_psd(editor, staging):
     ], placed)
     editor.edit(placed, [
         ('layer.select', {'layer': '横幅素材'}),
-        ('layer.smartObjects.replaceContents', {'path': str(ROOT / 'sample' / '精修素材.png')}),
+        ('layer.smartObjects.replaceContents', {'path': str(PRACTICE / '精修素材.png')}),
     ], changed)
     before = smart_content(placed, '横幅素材')
     after = smart_content(changed, '横幅素材')
@@ -266,12 +271,12 @@ def rendered_rows(editor, document, target):
 
 
 def content_aware_fill(editor, staging):
-    exercise = ROOT / 'sample' / '内容识别填充练习.pcraft'
-    finished = ROOT / 'verification' / '内容识别填充成稿.pcraft'
-    reference = ROOT / 'verification' / '内容识别填充参考.png'
-    portable = ROOT / 'presets' / 'P一下 内容识别填充.atn'
+    exercise = PRACTICE / '内容识别填充练习.pcraft'
+    finished = EVIDENCE / '内容识别填充成稿.pcraft'
+    reference = EVIDENCE / '内容识别填充参考.png'
+    portable = REPO / 'app' / 'presets' / 'P一下 内容识别填充.atn'
     source_bytes = exercise.read_bytes()
-    [preset] = [action for action in json.loads((ROOT / 'profile' / 'actions.json').read_text(encoding='utf-8'))['actions']
+    [preset] = [action for action in json.loads((REPO / 'app' / 'profile' / 'actions.json').read_text(encoding='utf-8'))['actions']
                 if action['set'] == 'P一下 · 内容识别填充']
     name = preset['name']
     load_channel = ('select.loadSelection', {'channel': '纸屑选区'})
@@ -360,9 +365,9 @@ def content_aware_fill(editor, staging):
 
 
 def remove_tool(editor, staging):
-    exercise = ROOT / 'sample' / '移除工具练习.pcraft'
-    finished = ROOT / 'verification' / '移除工具成稿.pcraft'
-    reference = ROOT / 'verification' / '内容识别填充参考.png'
+    exercise = PRACTICE / '移除工具练习.pcraft'
+    finished = EVIDENCE / '移除工具成稿.pcraft'
+    reference = EVIDENCE / '内容识别填充参考.png'
     source_bytes = exercise.read_bytes()
     tga = staging / 'remove-render.tga'
     original = rendered_rows(editor, exercise, tga)
@@ -455,10 +460,10 @@ def remove_tool(editor, staging):
 
 
 def edge_refinement(editor, staging):
-    exercise = ROOT / 'sample' / '半透明边缘练习.pcraft'
-    finished = ROOT / 'verification' / '半透明边缘成稿.pcraft'
-    portable = ROOT / 'presets' / 'P一下 边缘精修.atn'
-    presets = [action for action in json.loads((ROOT / 'profile' / 'actions.json').read_text(encoding='utf-8'))['actions']
+    exercise = PRACTICE / '半透明边缘练习.pcraft'
+    finished = EVIDENCE / '半透明边缘成稿.pcraft'
+    portable = REPO / 'app' / 'presets' / 'P一下 边缘精修.atn'
+    presets = [action for action in json.loads((REPO / 'app' / 'profile' / 'actions.json').read_text(encoding='utf-8'))['actions']
                if action['set'] == 'P一下 · 边缘精修']
     import_set = ('actions.load', {'path': str(portable)})
     load_channel = ('select.loadSelection', {'channel': '起始选区 · 色彩范围'})
@@ -541,7 +546,7 @@ def edge_refinement(editor, staging):
 
 
 def retouch(editor, staging):
-    source = ROOT / 'sample' / '精修素材.png'
+    source = PRACTICE / '精修素材.png'
     target = (790, 208)
     sample = (749, 208)
     original = editor.pixel(source, *target)
@@ -566,7 +571,7 @@ def retouch(editor, staging):
 
 
 def artboards(editor, staging):
-    document = ROOT / 'sample' / '横竖版交付.pcraft'
+    document = PRACTICE / '横竖版交付.pcraft'
     folder = staging / 'artboards'
     folder.mkdir()
     editor.edit(document, [('file.export.artboardsToFiles', {'dir': str(folder), 'format': 'png', 'prefix': 'asset-'})])
@@ -585,9 +590,9 @@ def artboards(editor, staging):
 
 
 def batch_delivery(editor, staging):
-    source = ROOT / 'sample' / '产品合成.psd'
-    boards = ROOT / 'sample' / '横竖版交付.pcraft'
-    variants, formats = load_recipe(ROOT / 'batch_recipe.json')
+    source = PRACTICE / '产品合成.psd'
+    boards = PRACTICE / '横竖版交付.pcraft'
+    variants, formats = load_recipe(REPO / 'tools' / 'batch_recipe.json')
     target = staging / 'batches'
     before = source.read_bytes()
     folder = deliver(editor, [source, boards], variants, formats, target)
@@ -615,8 +620,8 @@ def batch_delivery(editor, staging):
 
 
 def asset_delivery(editor, staging):
-    sample = ROOT / 'sample' / '素材出图.pcraft'
-    variants, formats = load_recipe(ROOT / 'batch_recipe.json')
+    sample = PRACTICE / '素材出图.pcraft'
+    variants, formats = load_recipe(REPO / 'tools' / 'batch_recipe.json')
     target = staging / 'assets'
     source_bytes = sample.read_bytes()
     completed = deliver(editor, [sample], variants, formats, target, mode='assets', prefix='上新')
@@ -673,10 +678,10 @@ def asset_delivery(editor, staging):
 
 
 def template_delivery(editor, staging):
-    template = ROOT / 'templates' / '商品上新模板.pcraft'
-    data = ROOT / 'templates' / '商品清单.csv'
+    template = TEMPLATES / '商品上新模板.pcraft'
+    data = TEMPLATES / '商品清单.csv'
     original_bytes = template.read_bytes()
-    _, formats = load_recipe(ROOT / 'batch_recipe.json')
+    _, formats = load_recipe(REPO / 'tools' / 'batch_recipe.json')
     target = staging / 'templates'
     folder, warnings = deliver_template(editor, template, data, target, formats, 'contain')
     manifest = json.loads((folder / '套版清单.json').read_text(encoding='utf-8'))
@@ -745,8 +750,8 @@ def template_delivery(editor, staging):
     broken = staging / '损坏图片.png'
     broken.write_bytes(b'invalid image')
     for path, table in [
-        (overflow, [['偏长的标题', '一个非常长的标题，' * 6, '', ROOT / 'templates' / '海蓝款.png']]),
-        (bad_data, [['正常组', '这是测试', '', ROOT / 'templates' / '海蓝款.png'], ['损坏组', '损坏素材', '', broken]]),
+        (overflow, [['偏长的标题', '一个非常长的标题，' * 6, '', TEMPLATES / '海蓝款.png']]),
+        (bad_data, [['正常组', '这是测试', '', TEMPLATES / '海蓝款.png'], ['损坏组', '损坏素材', '', broken]]),
     ]:
         with path.open('w', encoding='utf-8-sig', newline='') as output:
             csv.writer(output).writerows([['name', 'title', 'detail', 'product'], *table])
