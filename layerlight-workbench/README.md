@@ -37,6 +37,8 @@ bash P一下.command --preview-ui --examples
 
 首次构建需联网下载固定源码、翻译、字体及 Cargo 依赖。产物是当前 Mac 架构的本地签名应用，也可在工作台数据目录的 `Editor Preview` 中双击 `P一下.app`。预览使用独立配置 `profiles/0.23.1-ui` 和练习副本 `Editor Preview/Examples`。用 `bash P一下.command --preview-ui --remove` 可打开移除练习，也可用 `--preview-ui` 后接本地稿件路径。 [PhotoCraft 0.23.1 源码与授权](https://github.com/storytold/photocraft/tree/v0.23.1)
 
+需要放到 Mac 的「应用程序」时，在同一目录运行 `bash editor-ui/build-macos.sh --install`。新版安装到 `/Applications/P一下.app`，继续使用已有的预览配置。如已装过，上一版应用包会备份到工作台数据目录的 `Editor Preview`。
+
 ### 从样稿走一遍
 
 1. 打开 [产品合成.psd](sample/产品合成.psd)，用文字工具修改「新品发布」。选择「主体曲线」，在属性面板调整亮度。它剪贴到带蒙版的商品层，背景保持独立。

@@ -40,7 +40,15 @@ seed() (
 )
 
 if [[ "$preview" == true ]]; then
-    executable="$state/Editor Preview/P一下.app/Contents/MacOS/photocraft"
+    runtime="${PYIXIA_PREVIEW_APP:-"$state/Editor Preview/P一下.app"}"
+    if [[ -z "${PYIXIA_PREVIEW_APP:-}" && ! -x "$runtime/Contents/MacOS/photocraft" ]]; then
+        installed="/Applications/P一下.app"
+        installed_id="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$installed/Contents/Info.plist" 2>/dev/null || true)"
+        if [[ "$installed_id" == local.pyixia.editor.preview ]]; then
+            runtime="$installed"
+        fi
+    fi
+    executable="$runtime/Contents/MacOS/photocraft"
     if [[ ! -x "$executable" ]]; then
         printf '%s\n' '请先运行 bash editor-ui/build-macos.sh 构建界面预览。' >&2
         exit 1

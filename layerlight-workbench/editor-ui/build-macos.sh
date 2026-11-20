@@ -9,6 +9,16 @@ fi
 
 here="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 state="${LAYERLIGHT_HOME:-"$HOME/Library/Application Support/Layerlight Workbench"}"
+install=false
+if [[ "${1:-}" == --install ]]; then
+    install=true
+    shift
+fi
+if (( $# != 0 )); then
+    printf '%s\n' '用法 bash editor-ui/build-macos.sh [--install]' >&2
+    exit 2
+fi
+
 version=0.23.1
 revision=45066c48292e92229ada3459a83453439514c83d
 toolchain=1.95.0
@@ -22,6 +32,23 @@ fi
 mkdir -p -- "$state"
 state="$(cd -- "$state" && pwd -P)"
 edition="$state/Editor Preview"
+
+destination_dir="$edition"
+if [[ "$install" == true ]]; then
+    destination_dir=/Applications
+fi
+destination="$destination_dir/P一下.app"
+check_destination() {
+    if [[ -e "$destination" || -L "$destination" ]]; then
+        local current_id
+        current_id="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$destination/Contents/Info.plist" 2>/dev/null || true)"
+        if [[ -L "$destination" || "$current_id" != local.pyixia.editor.preview ]]; then
+            printf '已有其他应用占用 %s\n' "$destination" >&2
+            return 1
+        fi
+    fi
+}
+check_destination
 
 staging=
 scratch=
@@ -83,7 +110,7 @@ export CARGO_NET_GIT_FETCH_WITH_CLI=true
 cargo +"$toolchain" build --locked --release --jobs 4 -p photocraft --features heif
 
 mkdir -p -- "$edition"
-staging="$(mktemp -d "$edition/.bundle.XXXXXX")"
+staging="$(mktemp -d "$destination_dir/.pyixia-build.XXXXXX")"
 bundle="$staging/P一下.app"
 mkdir -p "$bundle/Contents/MacOS" "$bundle/Contents/Resources/Licenses"
 install -m755 "$CARGO_TARGET_DIR/release/photocraft" "$bundle/Contents/MacOS/photocraft"
@@ -96,13 +123,16 @@ find "$CRAFT_FONTS_DIR" -name 'OFL*.txt' -exec cp -n {} "$bundle/Contents/Resour
 plutil -lint "$bundle/Contents/Info.plist"
 codesign --sign - "$bundle"
 codesign --verify --deep --strict "$bundle"
-"$bundle/Contents/MacOS/photocraft" --version
 
-destination="$edition/P一下.app"
+LAYERLIGHT_HOME="$state" PYIXIA_PREVIEW_APP="$bundle" bash "$here/../P一下.command" --preview-ui --version
+check_destination
 if [[ -e "$destination" ]]; then
-    previous="$edition/P一下（上次构建）.app"
-    if [[ -e "$previous" ]]; then
+    if [[ "$install" == true ]]; then
+        previous="$edition/P一下（上次安装-$(date +%Y%m%d-%H%M%S)-$$）.app-backup"
+    elif [[ -e "$edition/P一下（上次构建）.app" ]]; then
         previous="$edition/P一下（$(date +%Y%m%d-%H%M%S)-$$）.app"
+    else
+        previous="$edition/P一下（上次构建）.app"
     fi
     mv -- "$destination" "$previous"
     if ! mv -- "$bundle" "$destination"; then
@@ -113,5 +143,4 @@ if [[ -e "$destination" ]]; then
 else
     mv -- "$bundle" "$destination"
 fi
-LAYERLIGHT_HOME="$state" bash "$here/../P一下.command" --preview-ui --version
 printf '编辑器预览已构建 %s\n' "$destination"
