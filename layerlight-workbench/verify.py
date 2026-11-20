@@ -786,7 +786,7 @@ def main():
     arguments = parser.parse_args()
     editor = Editor(arguments.cli.resolve())
     with tempfile.TemporaryDirectory(prefix='layerlight-verify-') as folder:
-        staging = Path(folder)
+        staging = Path(folder).resolve()
         checks = {'engine': editor.version, 'psd': psd(editor, staging), 'complex_psd': complex_psd(editor, staging),
                   'retouch': retouch(editor, staging), 'content_aware_fill': content_aware_fill(editor, staging),
                   'remove_tool': remove_tool(editor, staging), 'edge_refinement': edge_refinement(editor, staging),

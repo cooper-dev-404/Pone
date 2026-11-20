@@ -144,15 +144,15 @@ bash 链接素材.command package ./商品稿.pcraft --relink 12 ./新位置/商
 
 ## 验证
 
-- 移除工具通过 Linux 引擎回归，分别验证圈笔、涂抹、两笔合并、跨层取样和一步撤销。双笔成稿在两处修复范围外的 605,006 个像素逐一比对一致，重开后可开关修复层及调不透明度。Linux 云桌面打开了练习稿，画布未能渲染。画布手势和选项栏留到 Mac 实机验收。 [自动验收结果](verification/cli-results.json)
-- 内容识别填充通过 Linux 引擎回归。动作与自定义采样的结果都保留了选区外全部 611,088 个像素。自定义采样的分层成稿重开后可开关修复层及调不透明度，动作可一步撤销。Mac 工作区交互留待实机验收。 [自动验收结果](verification/cli-results.json)
+- 移除工具通过 Linux、Mac 引擎回归及 Mac 实机验收。验证了实体圈笔、直涂、单笔应用、两笔合并、取消暂存、一步撤销和保存重开。CLI 双笔成稿修复范围外 605,006 个像素一致。 [自动验收结果](verification/cli-results.json) · [Mac 实机记录](../bitmap-editor-research/photoshop-coverage.md#01-和-02-的-mac-补验记录)
+- 内容识别填充通过 Linux、Mac 引擎回归及 Mac 实机验收。验证了工作区采样预览、动作面板播放、独立修复层、一步撤销及保存重开。Mac 桌面成稿的选区外 611,088 个像素一致。 [自动验收结果](verification/cli-results.json) · [Mac 实机记录](../bitmap-editor-research/photoshop-coverage.md#01-和-02-的-mac-补验记录)
 - Linux Cloud 桌面打开了同一个官方版本及工作台配置。合成布局、双列工具和常驻的调整、图层与历史面板实际显示。界面完成标题修改并保存，重新读取 [桌面改稿 PSD](verification/桌面改稿.psd) 确认标题仍是文字图层，曲线剪贴及原图蒙版结构保留。也独立在桌面画布中拖动了曲线控制点。
 - 自动验收涵盖 PSD 文字和曲线回改、独立修复图层、组混合和蒙版、16 位 PSD 重开，以及批量成品的尺寸、透明度和 sRGB。套版验收重开了两份源稿，核对文字可编辑性、智能对象变换和三个画板的尺寸，并验证文字溢出提示和失败清理。 [自动验收结果](verification/cli-results.json)
-- 在 Linux 上验证了系统字体和临时用户字体的读取、实际渲染以及保存重开后的改字。字体交接检查用 PSD、PSB 和 `.pcraft` 样稿验证了混排图层、画板路径、隐藏分组的显隐状态以及损坏文件提示。Mac 字体册及字体检查的文件选择待实机确认。 [自动验收结果](verification/cli-results.json)
+- 在 Linux 上验证了系统字体和临时用户字体的读取、实际渲染以及保存重开后的改字。字体交接检查用 PSD、PSB 和 `.pcraft` 样稿验证了混排图层、画板路径、隐藏分组的显隐状态以及损坏文件提示。Mac 字体册新增字体后刷新及字体检查的文件选择待实机确认。 [自动验收结果](verification/cli-results.json)
 - 图层和切片样稿生成了 16 张 PNG 与 WebP，验证了蒙版透明边、重叠切片和原稿保留。额外用 PSD 验证了分组内标记图层、1.5× 和同名切片。 [自动验收结果](verification/cli-results.json)
 - 链接交接样本验证了断链定位、重链保留变换，以及同名素材、共享实例和整包搬移后的重新读取。Mac 文件选择留待实机验收。 [自动验收结果](verification/cli-results.json)
-- [交接样稿](verification/复杂交接样本.psd) 包含智能对象、正片叠底组、组内剪贴曲线、蒙版和文字。换图和 PSD 往返通过 PhotoCraft 样本检查。还需在 Photoshop 中交叉打开验证。
-- 当前环境是 Linux，Mac 安装流程、两个批量工具的系统文件面板、输入法、数位板和 GPU 表现需要 Mac 实机验收。
+- [交接样稿](verification/复杂交接样本.psd) 包含智能对象、正片叠底组、组内剪贴曲线、蒙版和文字。PSD 和 16 位 PSB 已在 Photoshop 2021 与 PhotoCraft 之间往返。文字重算提示及缺失字体见验收记录。 [Mac 交接记录](../bitmap-editor-research/photoshop-coverage.md#其他-mac-补验记录)
+- Mac 首装、系统拼音、用户中文字体、4K Metal 导出及低空间保存已有实测结果。批量工具系统文件面板、数位板和桌面异常恢复仍待补验。 [Mac 补验记录](../bitmap-editor-research/photoshop-coverage.md#其他-mac-补验记录)
 
 运行引擎验收：
 

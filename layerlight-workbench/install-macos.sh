@@ -46,8 +46,9 @@ if [[ ! -x "$upstream/Contents/MacOS/photocraft" ]]; then
     printf '%s\n' '官方镜像中缺少 PhotoCraft.app。' >&2
     exit 1
 fi
-codesign --verify --deep --strict "$upstream"
 ditto "$upstream" "$staging/PhotoCraft.app"
+# Disk-image Finder metadata can fail strict validation on macOS.
+xattr -rd com.apple.FinderInfo "$staging/PhotoCraft.app"
 codesign --verify --deep --strict "$staging/PhotoCraft.app"
 mv -n -- "$staging/PhotoCraft.app" "$runtime/"
 test -x "$runtime/PhotoCraft.app/Contents/MacOS/photocraft"

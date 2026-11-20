@@ -18,4 +18,4 @@ bash P一下.command --remove
 
 把工作区连接到同一个私有 Git 仓库。每次从 `main` 为清单中的一项功能创建分支。云端用 `layerlight-workbench/verify.py` 跑引擎回归，Mac 用同一提交验收画布交互。将测试结果与样稿一起提交，通过后合并，再进入下一项。
 
-当前第 01 项内容识别填充和第 02 项移除工具已通过 Linux 引擎回归。Mac 实机还要确认采样预览、动作播放和画布拖笔。第 03 项是内容识别移动。 [回归记录](layerlight-workbench/verification/cli-results.json)
+当前验收结果及第 03 项「内容识别移动」的启动条件见 [开发清单](bitmap-editor-research/photoshop-coverage.md)。 [Linux 回归记录](layerlight-workbench/verification/cli-results.json)
