@@ -2,7 +2,7 @@
   <img src="docs/assets/pyixia-icon.png" alt="P一下的像素狸花猫图标" width="104" height="104">
 </p>
 
-<h1 align="center">P一下 · Pyixia</h1>
+<h1 align="center">P一下</h1>
 
 <p align="center"><strong>修好一张图，留好每一层。</strong></p>
 
