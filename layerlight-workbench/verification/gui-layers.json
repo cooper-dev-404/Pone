@@ -1,0 +1,30 @@
+[
+  {
+    "name": "海报标题",
+    "kind": "Type",
+    "hasMask": false,
+    "clipped": false,
+    "title": "WEEKEND DROP"
+  },
+  {
+    "name": "主体曲线",
+    "kind": "Adjustment",
+    "hasMask": true,
+    "clipped": true,
+    "title": null
+  },
+  {
+    "name": "商品原图",
+    "kind": "Pixel",
+    "hasMask": true,
+    "clipped": false,
+    "title": null
+  },
+  {
+    "name": "新背景",
+    "kind": "Pixel",
+    "hasMask": false,
+    "clipped": false,
+    "title": null
+  }
+]

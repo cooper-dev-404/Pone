@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "variants": [
+    {"name": "方形主图", "width": 1080, "height": 1080, "fit": "contain", "format": "png"},
+    {"name": "竖版海报", "width": 1080, "height": 1350, "fit": "contain", "format": "png"},
+    {"name": "横版封面", "width": 1920, "height": 1080, "fit": "cover", "format": "webp", "quality": 85}
+  ],
+  "artboard_formats": [
+    {"format": "png"},
+    {"format": "webp", "quality": 85}
+  ]
+}

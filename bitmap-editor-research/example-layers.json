@@ -1,0 +1,47 @@
+[
+  {
+    "name": "海报标题",
+    "kind": "Type",
+    "hasMask": false,
+    "clipped": false,
+    "contents": "新品发布",
+    "curves": null
+  },
+  {
+    "name": "主体曲线",
+    "kind": "Adjustment",
+    "hasMask": true,
+    "clipped": true,
+    "contents": null,
+    "curves": [
+      [
+        0.0,
+        0.0
+      ],
+      [
+        128.0,
+        178.0
+      ],
+      [
+        255.0,
+        255.0
+      ]
+    ]
+  },
+  {
+    "name": "商品原图",
+    "kind": "Pixel",
+    "hasMask": true,
+    "clipped": false,
+    "contents": null,
+    "curves": null
+  },
+  {
+    "name": "新背景",
+    "kind": "Pixel",
+    "hasMask": false,
+    "clipped": false,
+    "contents": null,
+    "curves": null
+  }
+]

@@ -1,0 +1,475 @@
+{
+  "interface": {
+    "language": "zh-hans",
+    "theme": "studio",
+    "darkTheme": "studio",
+    "appearanceMode": "dark",
+    "showTooltips": true,
+    "clipThumbnailsToLayerBounds": true,
+    "showCanvasDots": false
+  },
+  "workspace": {
+    "openDocumentsAsTabs": true,
+    "rememberWorkspaceChanges": true
+  },
+  "fileHandling": {
+    "autosave": true
+  },
+  "general": {
+    "automaticallyCheckUpdates": false
+  },
+  "toolOptions": {
+    "sample_all": {
+      "remove": true
+    },
+    "remove_new_layer": true
+  },
+  "dialogs": {
+    "edit.contentAwareFill.workspace": {
+      "sampling": "rectangular",
+      "sampleAllLayers": true,
+      "output": "new"
+    }
+  },
+  "workspaces": {
+    "位图 · 合成": {
+      "panels": {
+        "options_bar": true,
+        "context_task_bar": false,
+        "toolbar": true,
+        "toolbar_double": true,
+        "dock": true,
+        "status_bar": true,
+        "brushes": false,
+        "character": false,
+        "color": false,
+        "history": true,
+        "layers": true,
+        "navigator": true,
+        "properties": true
+      },
+      "docking": {
+        "version": 2,
+        "locked": false,
+        "hidden": [],
+        "saved": null,
+        "layout": {
+          "floating": [],
+          "root": {
+            "Split": {
+              "axis": "Horizontal",
+              "first": {
+                "Tabs": {
+                  "active": 0,
+                  "panels": [
+                    "canvas"
+                  ]
+                }
+              },
+              "second": {
+                "Dock": {
+                  "columns": [
+                    {
+                      "groups": [
+                        {
+                          "active": 0,
+                          "height": 206.0,
+                          "minimized": false,
+                          "panels": [
+                            "adjustments",
+                            "properties",
+                            "histogram"
+                          ]
+                        },
+                        {
+                          "active": 0,
+                          "height": null,
+                          "minimized": false,
+                          "panels": [
+                            "layers",
+                            "channels",
+                            "paths"
+                          ]
+                        },
+                        {
+                          "active": 0,
+                          "height": 150.0,
+                          "minimized": false,
+                          "panels": [
+                            "history",
+                            "actions",
+                            "layerComps"
+                          ]
+                        }
+                      ],
+                      "iconic": false,
+                      "iconic_width": null,
+                      "width": 335.0
+                    }
+                  ],
+                  "side": "End"
+                }
+              },
+              "size": {
+                "FixedSecond": 335.0
+              }
+            }
+          }
+        }
+      },
+      "timelineOpen": false
+    },
+    "位图 · 精修": {
+      "panels": {
+        "options_bar": true,
+        "context_task_bar": false,
+        "toolbar": true,
+        "toolbar_double": true,
+        "dock": true,
+        "status_bar": true,
+        "brushes": true,
+        "character": false,
+        "color": false,
+        "history": true,
+        "layers": true,
+        "navigator": true,
+        "properties": true
+      },
+      "docking": {
+        "version": 2,
+        "locked": false,
+        "hidden": [],
+        "saved": null,
+        "layout": {
+          "floating": [],
+          "root": {
+            "Split": {
+              "axis": "Horizontal",
+              "first": {
+                "Tabs": {
+                  "active": 0,
+                  "panels": [
+                    "canvas"
+                  ]
+                }
+              },
+              "second": {
+                "Dock": {
+                  "columns": [
+                    {
+                      "groups": [
+                        {
+                          "active": 0,
+                          "height": 180.0,
+                          "minimized": false,
+                          "panels": [
+                            "histogram",
+                            "navigator",
+                            "info"
+                          ]
+                        },
+                        {
+                          "active": 0,
+                          "height": 176.0,
+                          "minimized": false,
+                          "panels": [
+                            "brushes",
+                            "adjustments",
+                            "properties"
+                          ]
+                        },
+                        {
+                          "active": 0,
+                          "height": null,
+                          "minimized": false,
+                          "panels": [
+                            "layers",
+                            "channels",
+                            "paths",
+                            "history"
+                          ]
+                        },
+                        {
+                          "active": 0,
+                          "height": 148.0,
+                          "minimized": false,
+                          "panels": [
+                            "actions",
+                            "layerComps"
+                          ]
+                        }
+                      ],
+                      "iconic": false,
+                      "iconic_width": null,
+                      "width": 325.0
+                    }
+                  ],
+                  "side": "End"
+                }
+              },
+              "size": {
+                "FixedSecond": 325.0
+              }
+            }
+          }
+        }
+      },
+      "timelineOpen": false
+    },
+    "位图 · 出图": {
+      "panels": {
+        "options_bar": true,
+        "context_task_bar": false,
+        "toolbar": true,
+        "toolbar_double": true,
+        "dock": true,
+        "status_bar": true,
+        "brushes": false,
+        "character": true,
+        "color": false,
+        "history": true,
+        "layers": true,
+        "navigator": false,
+        "properties": true
+      },
+      "docking": {
+        "version": 2,
+        "locked": false,
+        "hidden": [],
+        "saved": null,
+        "layout": {
+          "floating": [],
+          "root": {
+            "Split": {
+              "axis": "Horizontal",
+              "first": {
+                "Tabs": {
+                  "active": 0,
+                  "panels": [
+                    "canvas"
+                  ]
+                }
+              },
+              "second": {
+                "Dock": {
+                  "columns": [
+                    {
+                      "groups": [
+                        {
+                          "active": 0,
+                          "height": 178.0,
+                          "minimized": false,
+                          "panels": [
+                            "layerComps",
+                            "actions",
+                            "history"
+                          ]
+                        },
+                        {
+                          "active": 1,
+                          "height": 225.0,
+                          "minimized": false,
+                          "panels": [
+                            "properties",
+                            "character",
+                            "paragraph"
+                          ]
+                        },
+                        {
+                          "active": 0,
+                          "height": null,
+                          "minimized": false,
+                          "panels": [
+                            "layers",
+                            "channels",
+                            "paths"
+                          ]
+                        }
+                      ],
+                      "iconic": false,
+                      "iconic_width": null,
+                      "width": 335.0
+                    }
+                  ],
+                  "side": "End"
+                }
+              },
+              "size": {
+                "FixedSecond": 335.0
+              }
+            }
+          }
+        }
+      },
+      "timelineOpen": false
+    }
+  },
+  "panelLayout": {
+    "panels": {
+      "options_bar": true,
+      "context_task_bar": false,
+      "toolbar": true,
+      "toolbar_double": true,
+      "dock": true,
+      "status_bar": true,
+      "brushes": false,
+      "character": false,
+      "color": false,
+      "history": true,
+      "layers": true,
+      "navigator": true,
+      "properties": true
+    },
+    "docking": {
+      "version": 2,
+      "locked": false,
+      "hidden": [],
+      "saved": null,
+      "layout": {
+        "floating": [],
+        "root": {
+          "Split": {
+            "axis": "Horizontal",
+            "first": {
+              "Tabs": {
+                "active": 0,
+                "panels": [
+                  "canvas"
+                ]
+              }
+            },
+            "second": {
+              "Dock": {
+                "columns": [
+                  {
+                    "groups": [
+                      {
+                        "active": 0,
+                        "height": 206.0,
+                        "minimized": false,
+                        "panels": [
+                          "adjustments",
+                          "properties",
+                          "histogram"
+                        ]
+                      },
+                      {
+                        "active": 0,
+                        "height": null,
+                        "minimized": false,
+                        "panels": [
+                          "layers",
+                          "channels",
+                          "paths"
+                        ]
+                      },
+                      {
+                        "active": 0,
+                        "height": 150.0,
+                        "minimized": false,
+                        "panels": [
+                          "history",
+                          "actions",
+                          "layerComps"
+                        ]
+                      }
+                    ],
+                    "iconic": false,
+                    "iconic_width": null,
+                    "width": 335.0
+                  }
+                ],
+                "side": "End"
+              }
+            },
+            "size": {
+              "FixedSecond": 335.0
+            }
+          }
+        }
+      }
+    },
+    "timelineOpen": false,
+    "workspace": "位图 · 合成"
+  },
+  "presets": {
+    "export_presets": [
+      {
+        "name": "PNG 原尺寸 · 透明 sRGB",
+        "settings": {
+          "embedProfile": true,
+          "format": "png",
+          "height": 0,
+          "lockAspect": true,
+          "lossless": false,
+          "metadata": "none",
+          "profile": "srgb",
+          "quality": 85,
+          "resample": "bicubicAutomatic",
+          "scale": 100.0,
+          "sizing": "scale",
+          "tgaBits": "auto",
+          "transparency": true,
+          "width": 0
+        }
+      },
+      {
+        "name": "JPEG 原尺寸 · 质量 92",
+        "settings": {
+          "embedProfile": true,
+          "format": "jpg",
+          "height": 0,
+          "lockAspect": true,
+          "lossless": false,
+          "metadata": "none",
+          "profile": "srgb",
+          "quality": 92,
+          "resample": "bicubicAutomatic",
+          "scale": 100.0,
+          "sizing": "scale",
+          "tgaBits": "auto",
+          "transparency": false,
+          "width": 0
+        }
+      },
+      {
+        "name": "WebP 网页 · 质量 85",
+        "settings": {
+          "embedProfile": true,
+          "format": "webp",
+          "height": 0,
+          "lockAspect": true,
+          "lossless": false,
+          "metadata": "none",
+          "profile": "srgb",
+          "quality": 85,
+          "resample": "bicubicAutomatic",
+          "scale": 100.0,
+          "sizing": "scale",
+          "tgaBits": "auto",
+          "transparency": true,
+          "width": 0
+        }
+      },
+      {
+        "name": "PNG @2x · 透明 sRGB",
+        "settings": {
+          "embedProfile": true,
+          "format": "png",
+          "height": 0,
+          "lockAspect": true,
+          "lossless": false,
+          "metadata": "none",
+          "profile": "srgb",
+          "quality": 85,
+          "resample": "bicubicAutomatic",
+          "scale": 200.0,
+          "sizing": "scale",
+          "tgaBits": "auto",
+          "transparency": true,
+          "width": 0
+        }
+      }
+    ]
+  }
+}

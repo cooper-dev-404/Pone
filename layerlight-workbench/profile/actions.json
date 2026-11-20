@@ -1,0 +1,45 @@
+{
+  "version": 1,
+  "actions": [
+    {
+      "name": "当前选区 · 填充到新层",
+      "set": "P一下 · 内容识别填充",
+      "color": "green",
+      "steps": [
+        ["edit.contentAwareFill", {
+          "sampling": "rectangular",
+          "sampleAllLayers": true,
+          "colorAdaptation": "default",
+          "rotationAdaptation": "none",
+          "scale": false,
+          "mirror": false,
+          "output": "new"
+        }]
+      ]
+    },
+    {
+      "name": "选区转蒙版副本",
+      "set": "P一下 · 边缘精修",
+      "color": "blue",
+      "steps": [
+        ["select.refineEdge", {"output": "newLayerWithMask", "sampleAllLayers": false}]
+      ]
+    },
+    {
+      "name": "细化边缘 · 蒙版副本",
+      "set": "P一下 · 边缘精修",
+      "color": "green",
+      "steps": [
+        ["select.refineEdge", {"radius": 4, "smartRadius": true, "output": "newLayerWithMask", "sampleAllLayers": false}]
+      ]
+    },
+    {
+      "name": "细化并去边色 · 蒙版副本",
+      "set": "P一下 · 边缘精修",
+      "color": "orange",
+      "steps": [
+        ["select.refineEdge", {"radius": 4, "smartRadius": true, "decontaminate": true, "amount": 75, "output": "newLayerWithMask", "sampleAllLayers": false}]
+      ]
+    }
+  ]
+}

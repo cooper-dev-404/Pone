@@ -1,0 +1,272 @@
+{
+  "engine": "photocraft-cli 0.23.1 (45066c482, 2026-11-12)",
+  "psd": {
+    "layers": 4,
+    "title": "周末上新",
+    "curves_middle": [
+      128,
+      162
+    ],
+    "clipping_retained": true,
+    "mask_retained": true
+  },
+  "complex_psd": {
+    "smart_transform_retained": true,
+    "smart_source_replaced": true,
+    "group_blend": "Multiply",
+    "group_opacity_after_psd": 0.9019607901573181,
+    "nested_mask_and_clipping_retained": true,
+    "text_and_smart_object_retained": true,
+    "psd_16_bit_reopened": true
+  },
+  "retouch": {
+    "污点修复": {
+      "before_rgb": [
+        0.3490196168422699,
+        0.4000000059604645,
+        0.4941176474094391
+      ],
+      "after_rgb": [
+        0.7686274647712708,
+        0.7882353067398071,
+        0.8274509906768799
+      ],
+      "separate_layer": true
+    },
+    "仿制图章": {
+      "before_rgb": [
+        0.3490196168422699,
+        0.4000000059604645,
+        0.4941176474094391
+      ],
+      "after_rgb": [
+        0.772549033164978,
+        0.7960784435272217,
+        0.8352941274642944
+      ],
+      "separate_layer": true
+    }
+  },
+  "content_aware_fill": {
+    "selection": [
+      701,
+      309,
+      69,
+      48
+    ],
+    "sampling_brush_window": [
+      654,
+      273,
+      163,
+      120
+    ],
+    "outside_selection_pixels_identical": 611088,
+    "selection_mean_rgb_error_8bit": {
+      "original": 31.64,
+      "action": 12.35,
+      "custom_sampling": 9.7
+    },
+    "repair_layer_reopened_and_edited": true,
+    "undo_restored_original": true,
+    "invalid_custom_sampling_rejected": true,
+    "source_unchanged": true,
+    "environment": "Linux x86_64 CLI",
+    "launcher_example_verified_with_stub": true,
+    "macos_workspace_interaction": "pending"
+  },
+  "remove_tool": {
+    "before_rgb_error_8bit": {
+      "paper": 46.47,
+      "fiber": 21.15
+    },
+    "modes": {
+      "closed_stroke": {
+        "rgb_error_8bit": {
+          "paper": 11.24
+        },
+        "outside_repair_footprints_identical": 608081
+      },
+      "painted_stroke": {
+        "rgb_error_8bit": {
+          "fiber": 13.05
+        },
+        "outside_repair_footprints_identical": 611325
+      },
+      "combined_strokes": {
+        "rgb_error_8bit": {
+          "paper": 10.96,
+          "fiber": 14.31
+        },
+        "outside_repair_footprints_identical": 605006
+      }
+    },
+    "loop_enclosure_verified": true,
+    "sampled_from_blank_layer": true,
+    "one_step_undo": true,
+    "reopened_repair_editable": true,
+    "source_unchanged": true,
+    "environment": "Linux x86_64 CLI",
+    "launcher_example_verified_with_stub": true,
+    "linux_desktop_can_load_example": true,
+    "linux_desktop_canvas_gestures": "blocked: window opens but the canvas does not render",
+    "macos_workspace_interaction": "pending"
+  },
+  "edge_refinement": {
+    "actions_replayed": 3,
+    "original_pixels_preserved": true,
+    "decontamination_kept_mask": true,
+    "fringe_xy": [
+      511,
+      316
+    ],
+    "before_rgb_decontamination": [
+      0.33725491166114807,
+      0.364705890417099,
+      0.3176470696926117,
+      0.23529411852359772
+    ],
+    "after_rgb_decontamination": [
+      0.7490196228027344,
+      0.5686274766921997,
+      0.40784314274787903,
+      0.23529411852359772
+    ],
+    "mask_paint_and_density_reopened": true,
+    "layer_comps_checked": [
+      "原片",
+      "透明底",
+      "黑底预览",
+      "白底预览"
+    ]
+  },
+  "artboards": {
+    "竖版": {
+      "pixels": [
+        480,
+        640
+      ],
+      "color_type": 6
+    },
+    "横版": {
+      "pixels": [
+        960,
+        540
+      ],
+      "color_type": 2
+    }
+  },
+  "batch_delivery": {
+    "files": 7,
+    "embedded_srgb": true,
+    "alpha_preserved": true,
+    "source_verified": true,
+    "partial_delivery_cleanup": true
+  },
+  "asset_delivery": {
+    "files": 16,
+    "transparent_layer_retained": true,
+    "overlapping_slices_independent": true,
+    "same_name_psd_slices": 2,
+    "fractional_scale": 1.5,
+    "source_unchanged": true,
+    "partial_delivery_cleanup": true
+  },
+  "template_delivery": {
+    "variants": [
+      {
+        "name": "琥珀款",
+        "artboards": {
+          "横版横幅": [
+            960,
+            540
+          ],
+          "社媒方图": [
+            640,
+            640
+          ],
+          "竖版海报": [
+            480,
+            640
+          ]
+        },
+        "images": 6,
+        "product_pixel": [
+          0.9098039269447327,
+          0.5921568870544434,
+          0.2823529541492462,
+          1.0
+        ]
+      },
+      {
+        "name": "海蓝款",
+        "artboards": {
+          "横版横幅": [
+            960,
+            540
+          ],
+          "社媒方图": [
+            640,
+            640
+          ],
+          "竖版海报": [
+            480,
+            640
+          ]
+        },
+        "images": 6,
+        "product_pixel": [
+          0.4000000059604645,
+          0.6784313917160034,
+          0.9176470637321472,
+          1.0
+        ]
+      }
+    ],
+    "embedded_srgb": true,
+    "layer_geometry_preserved": true,
+    "text_overflow_reported": true,
+    "partial_delivery_cleanup": true,
+    "shared_binding_validated": true
+  },
+  "font_report": {
+    "formats": [
+      ".pcraft",
+      ".psd",
+      ".psb"
+    ],
+    "families_on_one_layer": [
+      "Layerlight Proof Missing Sans",
+      "Layerlight Proof Missing Serif"
+    ],
+    "hidden_layer_path_retained": true,
+    "unreadable_file_isolated": true,
+    "source_unchanged": true
+  },
+  "linked_handoff": {
+    "source_files": 2,
+    "linked_layers": 3,
+    "missing_link_reported": true,
+    "blocked_package_cleaned": true,
+    "relink_preserved_transform": true,
+    "moved_package_reopened": true,
+    "source_unchanged": true
+  },
+  "local_font": {
+    "family": "DejaVu Serif",
+    "faces": 8,
+    "postscript_name": "DejaVuSerif",
+    "pcraft_reopened": true,
+    "psd_reedited": true
+  },
+  "user_font_installation": {
+    "platform": "Linux",
+    "family": "Layerlight Local QA",
+    "format": "TTF",
+    "pcraft_reopened": true,
+    "psd_reedited": true,
+    "missing_families": [
+      "Layerlight Local QA"
+    ],
+    "render_restored": true
+  }
+}
