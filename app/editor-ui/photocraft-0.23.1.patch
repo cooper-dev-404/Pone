@@ -546,23 +546,32 @@
                          crate::jobs_ui::status_progress(app, ui);
 --- a/crates/ui-egui/src/panels/title_bar.rs
 +++ b/crates/ui-egui/src/panels/title_bar.rs
-@@ -63,9 +63,12 @@
+@@ -1,3 +1,4 @@
++use crate::APP_NAME;
+ use super::{PhotocraftApp, Sense, Tokens, icons, theme, vec2, widgets};
+
+ // ----------------------------------------------------------------------------- title bar
+@@ -48,8 +49,8 @@
+             let title = app
+                 .session
+                 .active()
+-                .map(|d| format!("{}{}", if show_name { d.doc.name.as_str() } else { "PhotoCraft" }, if d.is_dirty() { "  •" } else { "" }))
+-                .unwrap_or_else(|| "PhotoCraft".into());
++                .map(|d| format!("{}{}", if show_name { d.doc.name.as_str() } else { APP_NAME }, if d.is_dirty() { "  •" } else { "" }))
++                .unwrap_or_else(|| APP_NAME.into());
+             // The menus and the far-end controls are laid out first; the title is centred in
+             // whatever room is left between them (`free`, left to right: menus then controls, or
+             // controls then menus in a right-to-left UI), shortened or dropped rather than drawn
+@@ -63,7 +64,7 @@
                      ui.add_space(lead + 4.0);
                  }
                  if !system {
 -                    let side = if t.pro { 18.0 } else { 20.0 };
--                    let (mark, _) = ui.allocate_exact_size(vec2(side, side), Sense::hover());
--                    crate::brand::paint_mark(ui, mark);
-+                    if t.pro {
-+                        let (mark, _) = ui.allocate_exact_size(vec2(18.0, 18.0), Sense::hover());
-+                        crate::brand::paint_mark(ui, mark);
-+                    } else {
-+                        ui.label(egui::RichText::new("P一下").font(theme::medium(13.0)).color(t.text));
-+                    }
++                    let side = if t.pro { 20.0 } else { 22.0 };
+                     let (mark, _) = ui.allocate_exact_size(vec2(side, side), Sense::hover());
+                     crate::brand::paint_mark(ui, mark);
                      ui.add_space(6.0);
-                 }
-                 // With the macOS menu bar the menus are at the top of the screen instead. Either way
-@@ -107,10 +110,16 @@
+@@ -107,10 +108,16 @@
                          app.ui.workspace = ws;
                          crate::menus::apply_workspace(app);
                      }
@@ -583,6 +592,28 @@
                      }
                      let (theme_icon, appearance_label) = match app.session.prefs().interface.appearance_mode {
                          photocraft_engine::prefs::AppearanceMode::Auto => ("monitor", tl!("Auto")),
+@@ -170,9 +177,9 @@
+ /// drops out and only the app name (and the `*`) remains (#5037).
+ pub fn window_title(app: &PhotocraftApp) -> String {
+     if !app.session.prefs().interface.show_file_name_in_title {
+-        return format!("{}PhotoCraft", if app.session.active().is_some_and(|d| d.is_dirty()) { "*" } else { "" });
+-    }
+-    app.session.active().map(|d| format!("{}{} \u{2014} PhotoCraft", if d.is_dirty() { "*" } else { "" }, d.doc.name)).unwrap_or_else(|| "PhotoCraft".into())
++        return format!("{}{APP_NAME}", if app.session.active().is_some_and(|d| d.is_dirty()) { "*" } else { "" });
++    }
++    app.session.active().map(|d| format!("{}{} \u{2014} {APP_NAME}", if d.is_dirty() { "*" } else { "" }, d.doc.name)).unwrap_or_else(|| APP_NAME.into())
+ }
+
+ /// Keep the OS window title (and the taskbar / Alt-Tab entry) on the active file. Sends
+@@ -186,7 +193,7 @@
+ }
+
+ /// The in-app title line. It reads left to right as a whole, so a right-to-left document name keeps
+-/// "— PhotoCraft" after it, at the right; egui orders the name's own words.
++/// "— P一下" after it, at the right; egui orders the name's own words.
+ pub(crate) fn title_job(title: &str, font: egui::FontId, color: egui::Color32) -> egui::text::LayoutJob {
+     let mut job = egui::text::LayoutJob::simple_singleline(title.to_owned(), font, color);
+     job.direction = egui::epaint::text::TextDirection::LeftToRight;
 --- a/crates/ui-egui/src/panels/toolbar.rs
 +++ b/crates/ui-egui/src/panels/toolbar.rs
 @@ -6,7 +6,7 @@
@@ -938,3 +969,53 @@
              }
          }
          Tool::Patch => {
+--- a/crates/ui-egui/src/lib.rs
++++ b/crates/ui-egui/src/lib.rs
+@@ -8,6 +8,8 @@
+ // `control::inspect` builds the whole UI snapshot in one `json!`, past the default limit of 128.
+ #![recursion_limit = "256"]
+ #![deny(clippy::unwrap_used, clippy::expect_used, clippy::panic, clippy::unimplemented, clippy::todo, clippy::unreachable)]
++
++pub const APP_NAME: &str = "P一下";
+
+ /// PhotoCraft as craft-update knows it, with its 128 px icon and accent colour: the update
+ /// prompt shows both, and an AppImage's menu entry gets the icon.
+--- a/crates/ui-egui/src/panels/brand.rs
++++ b/crates/ui-egui/src/panels/brand.rs
+@@ -1,13 +1,11 @@
+-//! The PhotoCraft brand mark at the left of the title bar: the app icon (the kitsune,
+-//! `assets/app-icon/`, see its README), where Photoshop shows its "Ps" tile. The PNG carries the
+-//! icon's rounded corners; it is decoded once per context into a mipmapped texture, so it stays
++//! The P一下 icon at the left of the title bar. The PNG carries the rounded corners.
++//! It is decoded once per context into a mipmapped texture to stay crisp at title-bar size.
+-//! crisp at the title bar's size on any display scale.
+
+ use egui::{Color32, Context, Id, Rect, TextureHandle, TextureOptions, Ui, pos2};
+ use photocraft_codecs::{ChannelLayout, SampleType};
+
+ /// 128 px: sharp at 20 pt on a 3× display, and the mipmaps keep it clean at 1×.
+-const ICON_PNG: &[u8] = include_bytes!("../../../../assets/app-icon/hicolor/128x128/apps/ai.storyteller.photocraft.png");
++const ICON_PNG: &[u8] = include_bytes!("../../../../assets/app-icon/pyixia-mark.png");
+
+ /// The icon's pixels (one transparent pixel if it couldn't be decoded, which a test rules out).
+ fn decode() -> egui::ColorImage {
+--- a/apps/photocraft/src/main.rs
++++ b/apps/photocraft/src/main.rs
+@@ -151,7 +151,7 @@
+     eframe::NativeOptions {
+         viewport: viewport
+             .with_app_id(APP_ID)
+-            .with_title("PhotoCraft")
++            .with_title(photocraft_ui_egui::APP_NAME)
+             .with_inner_size([1440.0, 900.0])
+             .with_min_inner_size(photocraft_ui_egui::MIN_WINDOW_SIZE)
+             .with_drag_and_drop(true)
+@@ -495,7 +495,7 @@
+     let created_in_callback = app_created.clone();
+     let started_sentinel = sentinel.clone();
+     let result = eframe::run_native(
+-        "PhotoCraft",
++        photocraft_ui_egui::APP_NAME,
+         options,
+         Box::new(move |cc| {
+             created_in_callback.store(true, std::sync::atomic::Ordering::Relaxed);

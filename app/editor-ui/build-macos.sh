@@ -95,6 +95,10 @@ cd -- "$source_dir"
 if ! git apply --reverse --check "$patch_file" 2>/dev/null; then
     git apply "$patch_file"
 fi
+brand_icon="$source_dir/assets/app-icon/pyixia-mark.png"
+if [[ ! -f "$brand_icon" || "$here/Pyixia.icns" -nt "$brand_icon" ]]; then
+    sips -s format png -Z 128 "$here/Pyixia.icns" --out "$brand_icon" >/dev/null
+fi
 
 export CRAFT_I18N_DIR="$build/craft-i18n-$i18n_revision"
 export CRAFT_FONTS_DIR="$build/craft-fonts-$fonts_revision"
